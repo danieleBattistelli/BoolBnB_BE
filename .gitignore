@@ -1,10 +1,8 @@
-**/node_modules/
-.env
 # Escludere le directory e i file di Visual Studio Code
 .vscode/
 
 # Escludere le dipendenze dei progetti Node.js
-node_modules/
+**ode_modules/
 
 # Escludere file di log
 *.log
