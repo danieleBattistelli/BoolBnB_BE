@@ -23,7 +23,6 @@ app.use(express.json());
 app.use(express.static("public"));
 
 // rotte
-app.use("/home", homeRouter);
 
 app.use("/immobili", immobiliRouter);
 
