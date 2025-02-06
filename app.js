@@ -1,4 +1,5 @@
 import express from "express";
+import homeRouter from './routers/homePage.js'
 import immobiliRouter from "./routers/immobili.js";
 import recensioniRouter from "./routers/recensioni.js";
 import notFoundPage from './middlewares/notFoundRoute.js';
@@ -22,6 +23,8 @@ app.use(express.json());
 app.use(express.static("public"));
 
 // rotte
+app.use("/home", homeRouter);
+
 app.use("/immobili", immobiliRouter);
 
 app.use("/recensioni", recensioniRouter);
