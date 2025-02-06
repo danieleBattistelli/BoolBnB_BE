@@ -1,0 +1,46 @@
+# Escludere le directory e i file di Visual Studio Code
+.vscode/
+
+# Escludere le dipendenze dei progetti Node.js
+node_modules/
+
+# Escludere file di log
+*.log
+
+# Escludere file di ambiente
+.env
+
+# Escludere i file delle impostazioni di sistema operativo
+.DS_Store
+
+# Escludere file di configurazione degli editor
+*.sublime-workspace
+*.sublime-project
+.idea/
+
+# Escludere file compilati
+dist/
+build/
+
+# Escludere i file di configurazione per gli ambienti di sviluppo integrati (IDE)
+*.vs
+*.vscode
+
+# Escludere file di configurazione di debug
+debug.log
+
+# Escludere i file temporanei
+*.tmp
+
+# Escludere i file binari compilati
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+
+# Escludere i file di backup
+*.bak
+
+# Escludere i file di configurazione di sistema
+*.swp
