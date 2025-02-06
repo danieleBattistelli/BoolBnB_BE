@@ -7,5 +7,7 @@ const router = express.Router();
 // INDEX
 router.get("/", immobileController.index);
 
+router.get("/:id" ,immobileController.show)
+
 
 export default router;

@@ -1,6 +1,5 @@
 import express from "express";
 import immobiliRouter from "./routers/immobili.js";
-import recensioniRouter from "./routers/recensioni.js";
 import notFoundPage from './middlewares/notFoundRoute.js';
 import handleError from "./middlewares/handleError.js";
 import cors from "cors";
@@ -23,9 +22,6 @@ app.use(express.static("public"));
 
 // rotte
 app.use("/immobili", immobiliRouter);
-
-app.use("/recensioni", recensioniRouter);
-
 
 // middlewares di errore
 app.use(notFoundPage.notFoundRoute);
