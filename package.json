@@ -1,0 +1,17 @@
+{
+  "name": "boolb_b",
+  "version": "1.0.0",
+  "description": "Agenzia Immobiliare",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "app.js",
+  "scripts": {
+    "start": "node --env-file+.env app.js",
+    "dev": "node --env-file=.env --watch app.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "mysql2": "^3.12.0"
+  }
+}
