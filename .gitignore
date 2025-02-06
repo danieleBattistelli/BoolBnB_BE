@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+**/node_modules/
+.env
+=======
 # Escludere le directory e i file di Visual Studio Code
 .vscode/
 
@@ -44,3 +48,4 @@ debug.log
 
 # Escludere i file di configurazione di sistema
 *.swp
+>>>>>>> 23c346c125b3a9e0fb849ce1233d9d11cc31df72
