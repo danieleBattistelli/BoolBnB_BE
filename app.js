@@ -1,4 +1,5 @@
 import express from "express";
+import homeRouter from './routers/homePage.js'
 import immobiliRouter from "./routers/immobili.js";
 import notFoundPage from './middlewares/notFoundRoute.js';
 import handleError from "./middlewares/handleError.js";
@@ -21,6 +22,7 @@ app.use(express.json());
 app.use(express.static("public"));
 
 // rotte
+
 app.use("/immobili", immobiliRouter);
 
 // middlewares di errore
