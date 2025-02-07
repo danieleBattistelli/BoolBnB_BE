@@ -48,11 +48,14 @@ const show = (req, res, next) => {
             });
         }
 
-        let sqlRecensioni = `SELECT recensioni.*
+        let sqlRecensioni = `SELECT recensioni.id, utenti.nome, utenti.cognome, recensioni.recensione, recensioni.voto, recensioni.data
         FROM immobili
         INNER JOIN recensioni
         ON recensioni.id_immobile = immobili.id
+        INNER JOIN utenti
+        ON recensioni.id_utente = utenti.id
         WHERE immobili.id = ?`;
+
 
         connection.query(sqlRecensioni, id, (err, recensioni) => {
             if (err) {
