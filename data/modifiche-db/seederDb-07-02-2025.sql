@@ -84,7 +84,7 @@ INSERT INTO Recensioni (id_immobile, id_utente, voto, recensione, data) VALUES
 (3, 3, 3, 'Monolocale accogliente ma piccolo', '2025-02-07'),
 (3, 5, 3, 'Monolocale accogliente ma piccolo', '2025-02-07'),
 (3, 6, 5, 'Monolocale molto bello', '2025-02-07'),
-(3, 8, 2, 'Ho trovato un topo morto', '2025-02-07');
+(3, 8, 2, 'Ho trovato un topo morto', '2025-02-07'),
 (4, 4, 5, 'Villa stupenda con piscina', '2025-02-08'),
 (5, 5, 4, 'Trilocale spazioso e ben ubicato', '2025-02-09'),
 (6, 6, 5, 'Attico con vista mozzafiato', '2025-02-10'),
