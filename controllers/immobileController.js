@@ -68,7 +68,6 @@ const show = (req, res, next) => {
                 });
             }
 
-
             return res.status(200).json({
                 status: "success",
                 results: {
@@ -80,8 +79,58 @@ const show = (req, res, next) => {
         })
 
 
-
     })
 };
 
-export default { index, show };
+const destroy = (req, res, next) => {
+
+    const id = req.params.id;
+
+
+    const checkSql = `SELECT immobili.data_eliminazione 
+        FROM immobili 
+        WHERE immobili.id = ?`
+
+    connection.query(checkSql, [id], (err, dataEliminazione) => {
+
+        if (dataEliminazione[0].data_eliminazione) {
+            return res.status(200).json({
+                message: "l'immobile è già stato eliminato",
+                dataEliminazione: dataEliminazione[0].data_eliminazione
+            });
+        }
+
+        else {
+
+            const sql = `UPDATE Immobili i
+            JOIN Recensioni r ON i.id = r.id_immobile
+            SET i.data_eliminazione = CURDATE(), 
+            r.data_eliminazione = CURDATE()
+            WHERE i.id = ?
+            `;
+
+            connection.query(sql, [id], (err, response) => {
+
+                if (err) {
+                    return res.status(500).json({ status: "error", message: err });
+                }
+
+                else if (response.length === 0) {
+                    return res.status(404).json({
+                        status: "error",
+                        message: `nessun immobile con id ${id} trovato.`,
+                    });
+                }
+
+                res.sendStatus(204);
+            });
+
+        }
+
+    })
+
+
+}
+
+
+export default { index, show, destroy };
