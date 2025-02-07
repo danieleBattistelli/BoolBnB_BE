@@ -21,8 +21,8 @@ app.use(express.json());
 app.use(express.static("public"));
 
 // rotte
-
 app.use("/immobili", immobiliRouter);
+
 
 // middlewares di errore
 app.use(notFoundPage.notFoundRoute);

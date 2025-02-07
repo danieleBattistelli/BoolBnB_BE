@@ -1,3 +1,4 @@
+import { response } from "express";
 import connection from "../data/db.js";
 
 
@@ -83,12 +84,12 @@ const show = (req, res) => {
                 });
             }
 
-            if(immobile[0].data_eliminazione ){
+            if (immobile[0].data_eliminazione) {
                 return res.status(404).json({
                     status: "fail",
                     message: `l\'immobile con id ${id} è stato eliminato e non è più disponibile.`
                 });
-    
+
             }
 
             else {
@@ -100,9 +101,9 @@ const show = (req, res) => {
                         recensioni,
                     },
                 });
-    
+
             }
-            
+
         })
 
 
@@ -159,8 +160,85 @@ const destroy = (req, res) => {
 }
 
 const store = (req, res) => {
+    const { immobile, servizi, tipi_alloggio } = req.body;
 
-}
+    const { id_utente_proprietario, prezzo_affitto, titolo_descrittivo, indirizzo, citta, descrizione, imgs, mq, bagni, locali, posti_letto } = immobile;
+
+    const sqlInsertImmobile = `
+        INSERT INTO Immobili (
+            id_utente_proprietario, 
+            prezzo_affitto, 
+            titolo_descrittivo, 
+            indirizzo, 
+            citta, 
+            descrizione, 
+            imgs, 
+            mq, 
+            bagni, 
+            locali, 
+            posti_letto, 
+            data_eliminazione
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL);
+    `;
+
+    // Inserimento dell'immobile
+    connection.query(sqlInsertImmobile, [id_utente_proprietario, prezzo_affitto, titolo_descrittivo, indirizzo, citta, descrizione, imgs, mq, bagni, locali, posti_letto], (err, result) => {
+        if (err) {
+            return res.status(500).json({ status: "error", message: "Errore durante l'inserimento dell'immobile", error: err });
+        }
+
+        const immobileId = result.insertId; 
+
+        if (servizi && servizi.length > 0) {
+            const serviziSql = `
+                INSERT INTO Immobili_Servizi (id_immobile, id_servizio) VALUES ?
+            `;
+
+            const valoriServizi = servizi.map(servizioId => [immobileId, servizioId]);
+
+            // Inserimento dei servizi
+            connection.query(serviziSql, [valoriServizi], (err) => {
+                if (err) {
+                    return res.status(500).json({ status: "error", message: "Errore durante l'inserimento dei servizi", error: err });
+                }
+
+                if (tipi_alloggio && tipi_alloggio.length > 0) {
+                    const tipiAlloggioSql = `
+                        INSERT INTO Immobili_Tipi_Alloggio (id_immobile, id_tipo_alloggio) VALUES ?
+                    `;
+
+                    const valoriTipiAlloggio = tipi_alloggio.map(tipoId => [immobileId, tipoId]);
+
+                    // Inserimento dei tipi di alloggio
+                    connection.query(tipiAlloggioSql, [valoriTipiAlloggio], (err) => {
+                        if (err) {
+                            return res.status(500).json({ status: "error", message: "Errore durante l'inserimento dei tipi di alloggio", error: err });
+                        }
+
+                        return res.status(200).json({
+                            status: "success",
+                            immobile_id: immobileId,
+                            immobile: immobile
+                        });
+                    });
+                } else {
+                    return res.status(200).json({
+                        status: "success",
+                        immobile_id: immobileId,
+                        immobile: immobile
+                    });
+                }
+            });
+        } else {
+            return res.status(200).json({
+                status: "success",
+                immobile_id: immobileId,
+                immobile: immobile
+            });
+        }
+    });
+};
+
 
 const modify = (req, res) => {
 
