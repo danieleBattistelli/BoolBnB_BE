@@ -110,53 +110,78 @@ const show = (req, res) => {
 
 
 const destroy = (req, res) => {
-
     const id = req.params.id;
 
+    // Controllo se l'immobile esiste e se è già stato eliminato
+    const checkSql = `SELECT data_eliminazione FROM immobili WHERE id = ?`;
 
-    const checkSql = `SELECT immobili.data_eliminazione 
-        FROM immobili 
-        WHERE immobili.id = ?`
+    connection.query(checkSql, [id], (err, results) => {
+        if (err) {
+            return res.status(500).json({ status: "error", message: err });
+        }
 
-    connection.query(checkSql, [id], (err, dataEliminazione) => {
-
-        if (dataEliminazione[0].data_eliminazione) {
-            return res.status(200).json({
-                message: "l'immobile è già stato eliminato",
-                dataEliminazione: dataEliminazione[0].data_eliminazione
+        if (results.length === 0) {
+            return res.status(404).json({
+                status: "error",
+                message: `Nessun immobile con id ${id} trovato.`,
             });
         }
 
-        else {
+        const immobile = results[0];
 
-            const sql = `UPDATE Immobili i
-            JOIN Recensioni r ON i.id = r.id_immobile
-            SET i.data_eliminazione = CURDATE(), 
-            r.data_eliminazione = CURDATE()
-            WHERE i.id = ?
-            `;
+        // Se l'immobile è già stato eliminato, restituisce un messaggio
+        if (immobile.data_eliminazione) {
+            return res.status(200).json({
+                message: "L'immobile è già stato eliminato.",
+                dataEliminazione: immobile.data_eliminazione,
+            });
+        }
 
-            connection.query(sql, [id], (err, response) => {
+        // Controllo se ci sono recensioni per l'immobile
+        const checkRecensioniSql = `SELECT COUNT(*) AS count FROM recensioni WHERE id_immobile = ?`;
 
+        connection.query(checkRecensioniSql, [id], (err, recensioni) => {
+            if (err) {
+                return res.status(500).json({ status: "error", message: err });
+            }
+
+            const haRecensioni = recensioni[0].count > 0;
+
+            // Query di aggiornamento con o senza recensioni
+            let sqlUpdate;
+            let values = [id];
+
+            if (haRecensioni) {
+                sqlUpdate = `
+                    UPDATE immobili 
+                    SET data_eliminazione = CURDATE() 
+                    WHERE id = ?;
+
+                    UPDATE recensioni 
+                    SET data_eliminazione = CURDATE() 
+                    WHERE id_immobile = ?;
+                `;
+                values.push(id);
+            } else {
+                sqlUpdate = `
+                    UPDATE immobili 
+                    SET data_eliminazione = CURDATE() 
+                    WHERE id = ?;
+                `;
+            }
+
+            // Eseguo la query di eliminazione (logica soft delete)
+            connection.query(sqlUpdate, values, (err) => {
                 if (err) {
                     return res.status(500).json({ status: "error", message: err });
                 }
 
-                else if (response.length === 0) {
-                    return res.status(404).json({
-                        status: "error",
-                        message: `nessun immobile con id ${id} trovato.`,
-                    });
-                }
-
-                res.sendStatus(204);
+                return res.sendStatus(204); // No Content
             });
+        });
+    });
+};
 
-        }
-
-    })
-
-}
 
 const store = (req, res) => {
     const { immobile, servizi, tipi_alloggio } = req.body;
