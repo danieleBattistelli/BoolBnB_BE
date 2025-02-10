@@ -16,4 +16,8 @@ router.delete("/:id", immobileController.destroy);
 // STORE
 router.post("/", immobileController.store);
 
+// MODIFY
+router.put("/:id", immobileController.modify);
+
+
 export default router;

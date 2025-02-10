@@ -187,7 +187,7 @@ const store = (req, res) => {
             return res.status(500).json({ status: "error", message: "Errore durante l'inserimento dell'immobile", error: err });
         }
 
-        const immobileId = result.insertId; 
+        const immobileId = result.insertId;
 
         if (servizi && servizi.length > 0) {
             const serviziSql = `
@@ -241,7 +241,63 @@ const store = (req, res) => {
 
 
 const modify = (req, res) => {
+    const { id } = req.params;
+    const { immobile } = req.body;
 
-}
+    // Controlla se l'ID è fornito
+    if (!id) {
+        return res.status(400).json({
+            status: "fail",
+            message: "ID dell'immobile mancante"
+        });
+    }
+
+    // Controlla se il body contiene almeno un campo aggiornabile
+    if (!immobile || Object.keys(immobile).length === 0) {
+        return res.status(400).json({
+            status: "fail",
+            message: "Nessun dato fornito per l'aggiornamento"
+        });
+    }
+
+    const sqlSelect = `
+        SELECT * 
+        FROM immobili
+        WHERE id = ?
+    `;
+
+    connection.query(sqlSelect, [id], (err, result) => {
+        if (err) {
+            return res.status(500).json({ status: "fail", message: err });
+        }
+
+        if (result.length === 0) {
+            return res.status(404).json({
+                status: "fail",
+                message: `Nessun immobile con id ${id} trovato`
+            });
+        }
+
+        let sqlUpdate = `UPDATE immobili SET `;
+        const fields = Object.keys(immobile);
+        const values = fields.map(field => immobile[field]);
+
+        sqlUpdate += fields.map(field => `${field} = ?`).join(", ");
+        sqlUpdate += ` WHERE id = ?`;
+        values.push(id); 
+
+        connection.query(sqlUpdate, values, (err, response) => {
+            if (err) {
+                return res.status(500).json({ status: "fail", message: err });
+            }
+
+            return res.status(200).json({
+                status: "success",
+                message: "Immobile aggiornato con successo"
+            });
+        });
+    });
+};
+
 
 export default { index, show, destroy, store, modify };
