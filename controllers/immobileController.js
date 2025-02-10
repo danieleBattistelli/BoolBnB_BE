@@ -2,46 +2,57 @@ import { response } from "express";
 import connection from "../data/db.js";
 
 
-const index = (req, res,) => {
-
-    const sql = `SELECT immobili.*, CAST(AVG(recensioni.voto) AS FLOAT) AS voto_medio
-    FROM immobili
-    INNER JOIN recensioni
-    ON recensioni.id_immobile = immobili.id
-    GROUP BY immobili.id
+const index = (req, res) => {
+    // Query per ottenere tutti gli immobili (inclusi quelli senza recensioni)
+    const sqlImmobili = `
+        SELECT * FROM immobili
+        WHERE data_eliminazione IS NULL;
     `;
 
-    connection.query(sql, (err, results) => {
+    connection.query(sqlImmobili, (err, immobili) => {
         if (err) {
             return res.status(500).json({ status: "fail", message: err });
         }
 
-        else if (results.length === 0) {
+        if (immobili.length === 0) {
             return res.status(404).json({
                 status: "fail",
-                message: "nessun immobile trovato",
+                message: "Nessun immobile trovato",
             });
         }
 
-        const immobiliPresenti = []
+        // Query per ottenere la media dei voti per gli immobili con recensioni
+        const sqlVotiMedi = `
+            SELECT id_immobile, CAST(AVG(voto) AS FLOAT) AS voto_medio
+            FROM recensioni
+            GROUP BY id_immobile;
+        `;
 
-        results.forEach((immobile) => {
-            if (!immobile.data_eliminazione) {
-
-                immobiliPresenti.push(immobile);
-
-
+        connection.query(sqlVotiMedi, (err, voti) => {
+            if (err) {
+                return res.status(500).json({ status: "fail", message: err });
             }
 
-        })
+            // Mappiamo i voti medi con gli immobili
+            const votoMap = {};
+            voti.forEach(({ id_immobile, voto_medio }) => {
+                votoMap[id_immobile] = voto_medio;
+            });
 
-        return res.status(200).json({
-            status: "success",
-            results: immobiliPresenti,
-        })
-    })
+            // Aggiungiamo il voto medio solo agli immobili con recensioni
+            const immobiliFinali = immobili.map(immobile => ({
+                ...immobile,
+                voto_medio: votoMap[immobile.id] || null // Se non ha recensioni, voto_medio è NULL
+            }));
 
+            return res.status(200).json({
+                status: "success",
+                results: immobiliFinali,
+            });
+        });
+    });
 };
+
 
 const show = (req, res) => {
 
