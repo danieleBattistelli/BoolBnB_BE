@@ -55,71 +55,59 @@ const index = (req, res) => {
 
 
 const show = (req, res) => {
-
-    let sql = `SELECT *
-    FROM immobili
-    WHERE immobili.id = ?`;
-
     const id = req.params.id;
 
-    connection.query(sql, [id], (err, immobile) => {
+    // Query per ottenere l'immobile
+    const sqlImmobile = `
+        SELECT * FROM immobili WHERE id = ?;
+    `;
+
+    connection.query(sqlImmobile, [id], (err, immobili) => {
         if (err) {
             return res.status(500).json({ status: "fail", message: err });
         }
-        else if (immobile.length === 0) {
+
+        if (immobili.length === 0) {
             return res.status(404).json({
                 status: "fail",
-                message: `immobile con id ${id} non trovato.`,
+                message: `Immobile con id ${id} non trovato.`,
             });
         }
 
-        let sqlRecensioni = `SELECT recensioni.id, utenti.nome, utenti.cognome, recensioni.recensione, recensioni.voto, recensioni.data
-        FROM immobili
-        INNER JOIN recensioni
-        ON recensioni.id_immobile = immobili.id
-        INNER JOIN utenti
-        ON recensioni.id_utente = utenti.id
-        WHERE immobili.id = ?`;
+        const immobile = immobili[0];
 
+        // Se l'immobile è stato eliminato
+        if (immobile.data_eliminazione) {
+            return res.status(404).json({
+                status: "fail",
+                message: `L'immobile con id ${id} è stato eliminato e non è più disponibile.`,
+            });
+        }
 
-        connection.query(sqlRecensioni, id, (err, recensioni) => {
+        // Query per ottenere le recensioni
+        const sqlRecensioni = `
+            SELECT recensioni.id, utenti.nome, utenti.cognome, recensioni.recensione, recensioni.voto, recensioni.data
+            FROM recensioni
+            INNER JOIN utenti ON recensioni.id_utente = utenti.id
+            WHERE recensioni.id_immobile = ?;
+        `;
 
+        connection.query(sqlRecensioni, [id], (err, recensioni) => {
             if (err) {
                 return res.status(500).json({ status: "fail", message: err });
             }
 
-            else if (recensioni.length === 0) {
-                return res.status(404).json({
-                    status: "fail",
-                    message: `recensioni per immobile con id ${id} non trovato.`,
-                });
-            }
-
-            if (immobile[0].data_eliminazione) {
-                return res.status(404).json({
-                    status: "fail",
-                    message: `l\'immobile con id ${id} è stato eliminato e non è più disponibile.`
-                });
-
-            }
-
-            else {
-
-                return res.status(200).json({
-                    status: "success",
-                    results: {
-                        ...immobile[0],
-                        recensioni,
-                    },
-                });
-
-            }
-
-        })
-
-
-    })
+            return res.status(200).json({
+                status: "success",
+                results: {
+                    ...immobile,
+                    recensioni: recensioni.length > 0 ? recensioni : [],
+                },
+            });
+        });
+    });
 };
+
 
 const destroy = (req, res) => {
 
