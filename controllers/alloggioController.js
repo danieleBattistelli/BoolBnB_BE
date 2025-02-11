@@ -1,5 +1,5 @@
 const index = (req, res) => {
-    const sqlImmobiliTipoAlloggio = `SELECT * FROM immobili_tipi_alloggio;`;
+    const sqlImmobiliTipoAlloggio = `SELECT * FROM tipi_alloggio;`;
 
     connection.query(sqlImmobiliTipoAlloggio, (err, alloggi) => {
         if (err) {
