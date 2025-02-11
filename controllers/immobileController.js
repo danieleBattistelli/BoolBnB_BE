@@ -260,24 +260,24 @@ const store = (req, res) => {
 
 
 const modify = (req, res) => {
-    const { id } = req.params;
-    const { immobile, tipi_alloggio } = req.body;
+    const { slug } = req.params;
+    const { immobile, tipi_alloggio, immagini } = req.body;
 
-    if (!id) {
-        return res.status(400).json({ status: "fail", message: "ID dell'immobile mancante" });
+    if (!slug) {
+        return res.status(400).json({ status: "fail", message: "Slug dell'immobile mancante" });
     }
 
     if (!immobile || Object.keys(immobile).length === 0) {
         return res.status(400).json({ status: "fail", message: "Nessun dato fornito per l'aggiornamento" });
     }
 
-    const sqlSelect = `SELECT * FROM immobili WHERE id = ?`;
+    const sqlSelect = `SELECT * FROM immobili WHERE slug = ?`;
 
-    connection.query(sqlSelect, [id], (err, result) => {
+    connection.query(sqlSelect, [slug], (err, result) => {
         if (err) return res.status(500).json({ status: "fail", message: "Errore nel recupero dell'immobile", error: err });
 
         if (result.length === 0) {
-            return res.status(404).json({ status: "fail", message: `Nessun immobile con ID ${id} trovato` });
+            return res.status(404).json({ status: "fail", message: `Nessun immobile con slug ${slug} trovato` });
         }
 
         const immobileData = result[0];
@@ -301,61 +301,114 @@ const modify = (req, res) => {
         }
 
         // Gestione dello slug se il titolo cambia
-        let slug = immobileData.slug;
-        if (titolo_descrittivo && titolo_descrittivo !== immobileData.titolo_descrittivo) {
-            slug = slugify(titolo_descrittivo, { lower: true, strict: true });
+        let newSlug = immobileData.slug;
+        if (titolo_descrittivo && (titolo_descrittivo !== immobileData.titolo_descrittivo)) {
+            newSlug = slugify(titolo_descrittivo, { lower: true, strict: true });
 
-            const checkSlugSql = `SELECT COUNT(*) AS count FROM immobili WHERE slug = ? AND id != ?`;
-            connection.query(checkSlugSql, [slug, id], (err, slugResult) => {
+            const checkSlugSql = `SELECT COUNT(*) AS count FROM immobili WHERE slug = ? AND slug != ?`;
+            connection.query(checkSlugSql, [newSlug, immobileData.slug], (err, slugResult) => {
                 if (err) return res.status(500).json({ status: "error", message: "Errore nel controllo dello slug", error: err });
 
                 if (slugResult[0].count > 0) {
-                    slug += `-${Date.now()}`;
+                    newSlug += `-${Date.now()}`;
                 }
 
-                immobile.slug = slug; // Associa lo slug aggiornato
-                eseguireUpdate();
+                // 🔹 Aggiorna le tabelle collegate prima di modificare lo slug
+                const disableForeignKeys = `SET FOREIGN_KEY_CHECKS = 0`;
+                const enableForeignKeys = `SET FOREIGN_KEY_CHECKS = 1`;
+
+                connection.query(disableForeignKeys, (err) => {
+                    if (err) return res.status(500).json({ status: "error", message: "Errore nella disabilitazione delle chiavi esterne", error: err });
+
+                    // ✅ Aggiorna i riferimenti nelle tabelle collegate
+                    const updateTypesQuery = `UPDATE immobili_tipi_alloggio SET slug_immobile = ? WHERE slug_immobile = ?`;
+                    connection.query(updateTypesQuery, [newSlug, slug], (err) => {
+                        if (err) return res.status(500).json({ status: "error", message: "Errore nell'aggiornamento dei tipi di alloggio", error: err });
+
+                        const updateImagesQuery = `UPDATE immagini SET slug_immobile = ? WHERE slug_immobile = ?`;
+                        connection.query(updateImagesQuery, [newSlug, slug], (err) => {
+                            if (err) return res.status(500).json({ status: "error", message: "Errore nell'aggiornamento delle immagini", error: err });
+
+                            // ✅ Ora possiamo aggiornare la tabella immobili
+                            const updateImmobileSlugQuery = `UPDATE immobili SET slug = ? WHERE slug = ?`;
+                            connection.query(updateImmobileSlugQuery, [newSlug, slug], (err) => {
+                                if (err) return res.status(500).json({ status: "error", message: "Errore nell'aggiornamento dello slug dell'immobile", error: err });
+
+                                // ✅ Riattiva i vincoli di chiave esterna
+                                connection.query(enableForeignKeys, (err) => {
+                                    if (err) return res.status(500).json({ status: "error", message: "Errore nella riattivazione delle chiavi esterne", error: err });
+
+                                    return res.status(200).json({
+                                        status: "success",
+                                        message: "Immobile e riferimenti aggiornati con successo"
+                                    });
+                                });
+                            });
+                        });
+                    });
+                });
+
             });
         } else {
-            eseguireUpdate();
+            eseguireUpdate(slug);
         }
 
-        // Funzione per eseguire l'aggiornamento
-        function eseguireUpdate() {
+
+        function eseguireUpdate(slug) {
             let sqlUpdate = `UPDATE immobili SET `;
             const fields = Object.keys(immobile).filter(field => immobile[field] !== undefined);
             const values = fields.map(field => immobile[field]);
 
             sqlUpdate += fields.map(field => `${field} = ?`).join(", ");
-            sqlUpdate += ` WHERE id = ?`;
-            values.push(id);
+            sqlUpdate += ` WHERE slug = ?`;
+            values.push(slug);
 
             connection.query(sqlUpdate, values, (err) => {
                 if (err) return res.status(500).json({ status: "fail", message: "Errore nell'aggiornamento dell'immobile", error: err });
 
-                // Aggiorna tipi di alloggio
-                if (Array.isArray(tipi_alloggio) && tipi_alloggio.length > 0) {
-                    const sqlDeleteTipiAlloggio = `DELETE FROM Immobili_Tipi_Alloggio WHERE immobile_id = ?`;
+                // ✅ Aggiornamento delle immagini nella tabella corretta
+                if (Array.isArray(immagini) && immagini.length > 0) {
+                    const sqlDeleteImages = `DELETE FROM immagini WHERE slug_immobile = ?`;
+                    connection.query(sqlDeleteImages, [slug], (err) => {
+                        if (err) return res.status(500).json({ status: "error", message: "Errore nella rimozione delle immagini", error: err });
 
-                    connection.query(sqlDeleteTipiAlloggio, [id], (err) => {
-                        if (err) return res.status(500).json({ status: "error", message: "Errore nella rimozione dei tipi di alloggio", error: err });
+                        const sqlInsertImages = `INSERT INTO immagini (nome_immagine, slug_immobile) VALUES ?`;
+                        const imageValues = immagini.map(nomeImmagine => [nomeImmagine, slug]);
 
-                        const sqlInsertTipiAlloggio = `INSERT INTO Immobili_Tipi_Alloggio (immobile_id, tipo_alloggio_id) VALUES ?`;
-                        const valoriTipiAlloggio = tipi_alloggio.map(tipoId => [id, tipoId]);
+                        connection.query(sqlInsertImages, [imageValues], (err) => {
+                            if (err) return res.status(500).json({ status: "error", message: "Errore nell'inserimento delle immagini", error: err });
 
-                        connection.query(sqlInsertTipiAlloggio, [valoriTipiAlloggio], (err) => {
-                            if (err) return res.status(500).json({ status: "error", message: "Errore nell'inserimento dei tipi di alloggio", error: err });
+                            // ✅ Aggiorna i tipi di alloggio
+                            if (Array.isArray(tipi_alloggio) && tipi_alloggio.length > 0) {
+                                const sqlDeleteTipiAlloggio = `DELETE FROM Immobili_Tipi_Alloggio WHERE immobile_slug = ?`;
 
-                            return res.status(200).json({
-                                status: "success",
-                                message: "Immobile aggiornato con successo e tipi_alloggio aggiornati"
-                            });
+                                connection.query(sqlDeleteTipiAlloggio, [slug], (err) => {
+                                    if (err) return res.status(500).json({ status: "error", message: "Errore nella rimozione dei tipi di alloggio", error: err });
+
+                                    const sqlInsertTipiAlloggio = `INSERT INTO Immobili_Tipi_Alloggio (immobile_slug, tipo_alloggio_id) VALUES ?`;
+                                    const valoriTipiAlloggio = tipi_alloggio.map(tipoId => [slug, tipoId]);
+
+                                    connection.query(sqlInsertTipiAlloggio, [valoriTipiAlloggio], (err) => {
+                                        if (err) return res.status(500).json({ status: "error", message: "Errore nell'inserimento dei tipi di alloggio", error: err });
+
+                                        return res.status(200).json({
+                                            status: "success",
+                                            message: "Immobile aggiornato con successo, tipi_alloggio e immagini aggiornati"
+                                        });
+                                    });
+                                });
+                            } else {
+                                return res.status(200).json({
+                                    status: "success",
+                                    message: "Immobile aggiornato con successo e immagini aggiornate"
+                                });
+                            }
                         });
                     });
                 } else {
                     return res.status(200).json({
                         status: "success",
-                        message: "Immobile aggiornato con successo"
+                        message: "Immobile aggiornato con successo senza immagini"
                     });
                 }
             });
