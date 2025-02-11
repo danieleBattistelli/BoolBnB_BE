@@ -1,42 +1,28 @@
-INSERT INTO immobili (slug, email_proprietario, username_proprietario, titolo_descrittivo, indirizzo_completo, descrizione, mq, bagni, locali, posti_letto, data_eliminazione) 
-VALUES 
-('appartamento-milano-centrale', 'proprietario1@email.com', 'utente1', 'Appartamento Milano Centrale', 'Via Roma 10, Milano', 'Splendido appartamento in centro città.', 80, 2, 3, 4, NULL),
-('villa-rimini-mare', 'proprietario2@email.com', 'utente2', 'Villa Rimini Mare', 'Lungomare 5, Rimini', 'Villa di lusso a due passi dalla spiaggia.', 200, 3, 6, 8, NULL),
-('monolocale-firenze', 'proprietario3@email.com', 'utente3', 'Monolocale Firenze', 'Piazza Duomo 15, Firenze', 'Accogliente monolocale con vista Duomo.', 40, 1, 1, 2, NULL);
+-- Popolamento della tabella immobili
+INSERT INTO immobili (slug, email_proprietario, username_proprietario, titolo_descrittivo, indirizzo_completo, descrizione, mq, bagni, locali, posti_letto) VALUES
+('appartamento-vista-mare', 'mario.rossi@example.com', 'mario_rossi', 'Appartamento Vista Mare', 'Via Lungomare, 10, Napoli, Italia', 'Splendido appartamento con vista mare.', 80, 2, 3, 5),
+('villa-immersa-nel-verde', 'luca.bianchi@example.com', 'luca_bianchi', 'Villa Immersa nel Verde', 'Via dei Pini, 20, Firenze, Italia', 'Villa con ampio giardino.', 200, 3, 6, 8);
 
-INSERT INTO tipi_alloggio (nome_tipo_alloggio) 
-VALUES 
+-- Popolamento della tabella tipi_alloggio
+INSERT INTO tipi_alloggio (nome_tipo_alloggio) VALUES
 ('Appartamento'),
 ('Villa'),
 ('Monolocale'),
-('Attico'),
-('Casale');
+('Attico');
 
-INSERT INTO immobili_tipi_alloggio (immobile_id, tipo_alloggio_id) 
-VALUES 
-(1, 1), -- L'appartamento Milano Centrale è un "Appartamento"
-(2, 2), -- La Villa di Rimini è una "Villa"
-(3, 3); -- Il monolocale di Firenze è un "Monolocale"
+-- Popolamento della tabella immobili_tipi_alloggio
+INSERT INTO immobili_tipi_alloggio (slug_immobile, tipo_alloggio_id) VALUES
+('appartamento-vista-mare', 1),
+('villa-immersa-nel-verde', 2);
 
-INSERT INTO recensioni (id_immobile, voto, recensione, data, data_eliminazione, email, username) 
-VALUES 
-(1, 5, 'Ottimo appartamento, molto pulito e centrale!', '2024-02-01 14:30:00', NULL, 'utente1@email.com', 'utente1'),
-(2, 4, 'Bella villa con vista mare, un po’ costosa ma ne vale la pena.', '2024-01-15 10:00:00', NULL, 'utente2@email.com', 'utente2'),
-(3, 3, 'Posizione ottima, ma lo spazio è davvero ridotto.', '2024-02-05 16:45:00', NULL, 'utente3@email.com', 'utente3');
+-- Popolamento della tabella immagini
+INSERT INTO immagini (nome_immagine, slug_immobile) VALUES
+('appartamento1.jpg', 'appartamento-vista-mare'),
+('appartamento2.jpg', 'appartamento-vista-mare'),
+('villa1.jpg', 'villa-immersa-nel-verde'),
+('villa2.jpg', 'villa-immersa-nel-verde');
 
-INSERT INTO immagini (nome_immagine) 
-VALUES 
-('milano1.jpg'),
-('milano2.jpg'),
-('rimini1.jpg'),
-('rimini2.jpg'),
-('firenze1.jpg');
-
-INSERT INTO immagini_immobili (id_immagine, id_immobile) 
-VALUES 
-(1, 1), -- milano1.jpg -> Appartamento Milano
-(2, 1), -- milano2.jpg -> Appartamento Milano
-(3, 2), -- rimini1.jpg -> Villa Rimini
-(4, 2), -- rimini2.jpg -> Villa Rimini
-(5, 3); -- firenze1.jpg -> Monolocale Firenze
-
+-- Popolamento della tabella recensioni
+INSERT INTO recensioni (id_immobile, voto, recensione, email, username) VALUES
+(1, 5, 'Bellissimo appartamento, vista incredibile!', 'giulia.verdi@example.com', 'giulia_verdi'),
+(2, 4, 'Villa molto spaziosa, ottimo giardino.', 'andrea.neri@example.com', 'andrea_neri');
