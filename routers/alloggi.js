@@ -6,3 +6,5 @@ const router = express.Router();
 
 // INDEX
 router.get("/", alloggioController.index);
+
+export default router;

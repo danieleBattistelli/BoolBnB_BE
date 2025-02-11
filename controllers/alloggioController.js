@@ -1,3 +1,5 @@
+import connection from "../data/db.js";
+
 const index = (req, res) => {
     const sqlImmobiliTipoAlloggio = `SELECT * FROM tipi_alloggio;`;
 
@@ -17,3 +19,5 @@ const index = (req, res) => {
 
     });
 };
+
+export default {index};
