@@ -8,10 +8,10 @@ const router = express.Router();
 router.get("/", immobileController.index);
 
 // SHOW
-router.get("/:id" ,immobileController.show);
+router.get("/:slug" ,immobileController.show);
 
 // DESTROY
-router.delete("/:id", immobileController.destroy);
+router.delete("/:slug", immobileController.destroy);
 
 // STORE
 router.post("/", immobileController.store);
