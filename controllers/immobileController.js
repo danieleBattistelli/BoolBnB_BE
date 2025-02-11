@@ -207,34 +207,23 @@ const store = (req, res) => {
                     }
                 }
 
-                const immobileId = result.insertId;
-
-                console.log(immobileId);
-
-                // Inserimento immagini
-                const checkTipoAlloggioExistenceSql = `SELECT id FROM tipi_alloggio WHERE id IN (?)`;
-
-                connection.query(checkTipoAlloggioExistenceSql, [tipi_alloggio], (err, result) => {
+                // Verifica che lo slug esista nella tabella immobili
+                const checkImmobileSlug = `SELECT slug FROM immobili WHERE slug = ?`;
+                connection.query(checkImmobileSlug, [slug], (err, result) => {
                     if (err) {
                         if (!isResponseSent) {
                             isResponseSent = true;
-                            return res.status(500).json({ status: "error", message: "Errore nella verifica dei tipi di alloggio", error: err });
+                            return res.status(500).json({ status: "error", message: "Errore nella verifica dello slug dell'immobile", error: err });
                         }
                     }
 
-                    const validIds = result.map(row => row.id);
-                    const invalidIds = tipi_alloggio.filter(id => !validIds.includes(id));
-
-                    if (invalidIds.length > 0) {
-                        if (!isResponseSent) {
-                            isResponseSent = true;
-                            return res.status(400).json({ status: "error", message: `I seguenti tipi di alloggio non esistono: ${invalidIds.join(', ')}` });
-                        }
+                    if (result.length === 0) {
+                        return res.status(400).json({ status: "error", message: "Lo slug dell'immobile non è valido" });
                     }
 
-                    // Se tutti gli ID sono validi, prosegui con l'inserimento
-                    const tipiAlloggioSql = `INSERT INTO Immobili_Tipi_Alloggio (immobile_id, tipo_alloggio_id) VALUES ?`;
-                    const valoriTipiAlloggio = tipi_alloggio.map(tipoId => [immobileId, tipoId]);
+                    // Se lo slug esiste, continua con l'inserimento dei tipi di alloggio
+                    const tipiAlloggioSql = `INSERT INTO Immobili_Tipi_Alloggio (slug_immobile, tipo_alloggio_id) VALUES ?`;
+                    const valoriTipiAlloggio = tipi_alloggio.map(tipoId => [slug, tipoId]); // Usa lo slug anziché immobileId
 
                     connection.query(tipiAlloggioSql, [valoriTipiAlloggio], (err) => {
                         if (err && !isResponseSent) {
@@ -257,6 +246,7 @@ const store = (req, res) => {
         );
     });
 };
+
 
 
 const modify = (req, res) => {
