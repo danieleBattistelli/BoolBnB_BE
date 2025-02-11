@@ -28,15 +28,8 @@ CREATE TABLE immobili_tipi_alloggio (
 
 CREATE TABLE immagini (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    nome_immagine VARCHAR(255) NOT NULL
-);
-
-CREATE TABLE immagini_immobili (
-    id_immagine BIGINT NOT NULL,
-    id_immobile BIGINT NOT NULL,
-    PRIMARY KEY (id_immagine, id_immobile),
-    FOREIGN KEY (id_immagine) REFERENCES immagini(id) ON DELETE CASCADE,
-    FOREIGN KEY (id_immobile) REFERENCES immobili(id) ON DELETE CASCADE
+    nome_immagine VARCHAR(255) NOT NULL,
+    slug_immobile VARCHAR(255) NOT NULL,
 );
 
 CREATE TABLE recensioni (
