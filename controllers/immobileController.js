@@ -28,7 +28,7 @@ const index = (req, res) => {
                     params.push(req.query[key]);
                     break;
                 default:
-                    sqlImmobili += ` AND ${key} = ?`;
+                    sqlImmobili += ` AND ${key} >= ?`;
                     params.push(req.query[key]);
                     break;
             }
