@@ -1,10 +1,41 @@
+import { query } from "express";
 import connection from "../data/db.js";
 import slugify from "slugify";
 
 const index = (req, res) => {
-    const sqlImmobili = "SELECT * FROM immobili WHERE data_eliminazione IS NULL;";
+    let sqlImmobili = "SELECT * FROM immobili WHERE data_eliminazione IS NULL";
+    const params = [];
 
-    connection.query(sqlImmobili, (err, immobili) => {
+    // Gestione del parametro 'search' per indirizzo_completo
+    const search = req.query.search;
+    if (search) {
+        sqlImmobili += " AND indirizzo_completo LIKE ?";
+        params.push(`%${search}%`);
+    }
+
+    // Gestione dinamica di altri parametri di filtro
+    const allowedFilters = ["locali", "bagni", "posti_letto", "superficie_min", "superficie_max"];
+    
+    Object.keys(req.query).forEach((key) => {
+        if (allowedFilters.includes(key)) {
+            switch (key) {
+                case "superficie_min":
+                    sqlImmobili += " AND mq >= ?";
+                    params.push(req.query[key]);
+                    break;
+                case "superficie_max":
+                    sqlImmobili += " AND mq <= ?";
+                    params.push(req.query[key]);
+                    break;
+                default:
+                    sqlImmobili += ` AND ${key} = ?`;
+                    params.push(req.query[key]);
+                    break;
+            }
+        }
+    });
+
+    connection.query(sqlImmobili, params, (err, immobili) => {
         if (err) return res.status(500).json({ status: "fail", message: err });
 
         if (immobili.length === 0) {
@@ -71,6 +102,7 @@ const index = (req, res) => {
         });
     });
 };
+
 
 
 const show = (req, res, next) => {
