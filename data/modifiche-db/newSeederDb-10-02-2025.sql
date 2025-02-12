@@ -8,7 +8,7 @@ INSERT INTO immobili (id, slug, email_proprietario, username_proprietario, titol
 (6, 'loft-industriale', 'lorenzo.marino@example.com', 'lorenzo_marino', 'Loft Industriale', 'Via Manzoni, 50, Bologna, Italia', 'Spazioso loft in stile industriale.', 90, 1, 2, 3),
 (7, 'bungalow-al-mare', 'chiara.russo@example.com', 'chiara_russo', 'Bungalow al Mare', 'Via Marittima, 25, Genova, Italia', 'Bungalow con accesso diretto alla spiaggia.', 60, 2, 2, 4),
 (8, 'casa-colonica', 'alessandro.vitali@example.com', 'alessandro_vitali', 'Casa Colonica', 'Via delle Campagne, 40, Perugia, Italia', 'Casa colonica ristrutturata.', 150, 3, 5, 7),
-(9, 'attico-moderno', 'valentina.ferrari@example.com', 'valentina_ferrari', 'Attico Moderno', 'Via dell\'Arte, 8, Venezia, Italia', 'Attico moderno con terrazza.', 100, 2, 4, 5),
+(9, 'attico-moderno', 'valentina.ferrari@example.com', 'valentina_ferrari', 'Attico Moderno', "Via dell'Arte, 8, Venezia, Italia", 'Attico moderno con terrazza.', 100, 2, 4, 5),
 (10, 'appartamento-elegante', 'francesco.gori@example.com', 'francesco_gori', 'Appartamento Elegante', 'Via del Teatro, 12, Torino, Italia', 'Appartamento elegante e centrale.', 85, 2, 3, 4);
 
 -- Popolamento della tabella tipi_alloggio
