@@ -2,7 +2,7 @@ import connection from "../data/db.js";
 import slugify from "slugify";
 
 const index = (req, res) => {
-    const sqlImmobili = `SELECT * FROM immobili WHERE data_eliminazione IS NULL;`;
+    const sqlImmobili = "SELECT * FROM immobili WHERE data_eliminazione IS NULL;";
 
     connection.query(sqlImmobili, (err, immobili) => {
         if (err) return res.status(500).json({ status: "fail", message: err });
@@ -11,11 +11,8 @@ const index = (req, res) => {
             return res.status(404).json({ status: "fail", message: "Nessun immobile trovato" });
         }
 
-        const sqlVotiMedi = `
-            SELECT id_immobile, CAST(AVG(voto) AS FLOAT) AS voto_medio
-            FROM recensioni
-            GROUP BY id_immobile;
-        `;
+        const sqlVotiMedi = 
+            "SELECT id_immobile, CAST(AVG(voto) AS FLOAT) AS voto_medio FROM recensioni GROUP BY id_immobile;";
 
         connection.query(sqlVotiMedi, (err, voti) => {
             if (err) return res.status(500).json({ status: "fail", message: err });
@@ -25,18 +22,56 @@ const index = (req, res) => {
                 votoMap[id_immobile] = voto_medio;
             });
 
-            const immobiliFinali = immobili.map(immobile => ({
-                ...immobile,
-                voto_medio: votoMap[immobile.id] || null
-            }));
+            // Ottenere gli slug degli immobili
+            const slugs = immobili.map(immobile => immobile.slug);
 
-            return res.status(200).json({
-                status: "success",
-                results: immobiliFinali,
+            if (slugs.length === 0) {
+                return res.status(200).json({
+                    status: "success",
+                    results: immobili.map(immobile => ({
+                        ...immobile,
+                        voto_medio: votoMap[immobile.id] || null,
+                        immagini: []
+                    })),
+                });
+            }
+
+            const sqlImmagini = `
+                SELECT slug_immobile, id, nome_immagine
+                FROM immagini
+                WHERE slug_immobile IN (?);
+            `;
+
+            connection.query(sqlImmagini, [slugs], (err, immagini) => {
+                if (err) {
+                    return res.status(500).json({ status: "fail", message: err });
+                }
+
+                // Raggruppare le immagini per slug_immobile
+                const immaginiMap = {};
+                immagini.forEach(({ slug_immobile, id, nome_immagine }) => {
+                    if (!immaginiMap[slug_immobile]) {
+                        immaginiMap[slug_immobile] = [];
+                    }
+                    immaginiMap[slug_immobile].push({ id, nome_immagine });
+                });
+
+                // Associare le immagini agli immobili corrispondenti
+                const immobiliFinali = immobili.map(immobile => ({
+                    ...immobile,
+                    voto_medio: votoMap[immobile.id] || null,
+                    immagini: immaginiMap[immobile.slug] || [],
+                }));
+
+                return res.status(200).json({
+                    status: "success",
+                    immobili: immobiliFinali,
+                });
             });
         });
     });
 };
+
 
 const show = (req, res, next) => {
 
@@ -45,15 +80,15 @@ const show = (req, res, next) => {
     WHERE immobili.slug = ?`;
 
     const slug = req.params.slug;
-    let idImmobile 
+    let idImmobile
 
     connection.query(sqlId, [slug], (err, result) => {
-        if(err) {
+        if (err) {
             return res.status(500).json({ status: "fail", message: err });
         }
 
         else if (!result) {
-            return res.status(404).json({ status: "fail", message: "nessun immobile trovato"});
+            return res.status(404).json({ status: "fail", message: "nessun immobile trovato" });
         }
 
         idImmobile = result[0].id;
@@ -80,7 +115,6 @@ const show = (req, res, next) => {
         FROM immobili
         INNER JOIN recensioni
         ON recensioni.id_immobile = immobili.id
-        
         WHERE immobili.id = ?`;
 
         connection.query(sqlRecensioni, idImmobile, (err, recensioni) => {
@@ -88,13 +122,47 @@ const show = (req, res, next) => {
                 return res.status(500).json({ status: "fail", message: err });
             }
 
-            return res.status(200).json({
-                status: "success",
-                results: {
-                    ...immobile[0],
-                    recensioni: recensioni || [],
-                },
+            const sqlImmagini = `
+                SELECT immagini.id, immagini.nome_immagine
+                FROM immagini
+                WHERE slug_immobile = ?
+            `;
+
+            connection.query(sqlImmagini, [slug], (err, immagini) => {
+                if (err) {
+                    return res.status(500).json({ status: "fail", message: err });
+                }
+
+                const sqlTipiAlloggi = `
+                    SELECT tipi_alloggio.*
+                    FROM tipi_alloggio
+                    INNER JOIN immobili_tipi_alloggio
+                    ON tipi_alloggio.id = immobili_tipi_alloggio.tipo_alloggio_id
+                    WHERE immobili_tipi_alloggio.slug_immobile = ? 
+                `;
+
+                connection.query(sqlTipiAlloggi, [slug], (err, tipiAlloggio) => {
+                    if (err) {
+                        return res.status(500).json({ status: "fail", message: err });
+                    }
+
+                    return res.status(200).json({
+                        status: "success",
+                        results: {
+                            immobile: {
+                                ...immobile[0],
+                                recensioni: recensioni || [],
+                            },
+                            immagini: immagini,
+                            tipi_alloggio: tipiAlloggio,
+                        }
+                    });
+                })
+
+
             });
+
+
 
         })
 
