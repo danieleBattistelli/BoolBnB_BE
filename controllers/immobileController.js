@@ -7,7 +7,7 @@ const index = (req, res) => {
         SELECT i.*, COALESCE(v.voto_medio, 0) AS voto_medio, COALESCE(v.tot_recensioni, 0) AS tot_recensioni
         FROM immobili i
         LEFT JOIN (
-            SELECT id_immobile, CAST(AVG(voto) AS FLOAT) AS voto_medio , COUNT(recensioni.id) AS tot_recensioni
+            SELECT id_immobile, CAST(AVG(voto) AS FLOAT) AS voto_medio, COUNT(recensioni.id) AS tot_recensioni
             FROM recensioni 
             GROUP BY id_immobile
         ) v ON i.id = v.id_immobile
@@ -62,18 +62,18 @@ const index = (req, res) => {
         // Ottenere gli slug degli immobili
         const slugs = immobili.map(immobile => immobile.slug);
         
-        
-
         if (slugs.length === 0) {
             return res.status(200).json({
                 status: "success",
                 results: immobili.map(immobile => ({
                     ...immobile,
-                    immagini: []
+                    immagini: [],
+                    tipi_alloggio: []
                 })),
             });
         }
 
+        // Ottenere immagini per gli immobili
         const sqlImmagini = `
             SELECT slug_immobile, id, nome_immagine
             FROM immagini
@@ -81,9 +81,7 @@ const index = (req, res) => {
         `;
 
         connection.query(sqlImmagini, [slugs], (err, immagini) => {
-            if (err) {
-                return res.status(500).json({ status: "fail", message: err });
-            }
+            if (err) return res.status(500).json({ status: "fail", message: err });
 
             // Raggruppare le immagini per slug_immobile
             const immaginiMap = {};
@@ -94,22 +92,41 @@ const index = (req, res) => {
                 immaginiMap[slug_immobile].push({ id, nome_immagine });
             });
 
-            // Associare le immagini agli immobili corrispondenti
-            const immobiliFinali = immobili.map(immobile => ({
-                ...immobile,
-                immagini: immaginiMap[immobile.slug] || [],
-            }));
+            // Ottenere tipi di alloggio per gli immobili
+            const sqlTipiAlloggio = `
+                SELECT ia.slug_immobile, ta.id, ta.nome_tipo_alloggio
+                FROM immobili_tipi_alloggio ia
+                INNER JOIN tipi_alloggio ta ON ia.tipo_alloggio_id = ta.id
+                WHERE ia.slug_immobile IN (?);
+            `;
 
-            return res.status(200).json({
-                status: "success",
-                immobili: immobiliFinali,
+            connection.query(sqlTipiAlloggio, [slugs], (err, tipiAlloggio) => {
+                if (err) return res.status(500).json({ status: "fail", message: err });
+
+                // Raggruppare i tipi di alloggio per slug_immobile
+                const tipiAlloggioMap = {};
+                tipiAlloggio.forEach(({ slug_immobile, id, nome_tipo_alloggio }) => {
+                    if (!tipiAlloggioMap[slug_immobile]) {
+                        tipiAlloggioMap[slug_immobile] = [];
+                    }
+                    tipiAlloggioMap[slug_immobile].push({ id, nome_tipo_alloggio });
+                });
+
+                // Associare le immagini e i tipi di alloggio agli immobili
+                const immobiliFinali = immobili.map(immobile => ({
+                    ...immobile,
+                    immagini: immaginiMap[immobile.slug] || [],
+                    tipi_alloggio: tipiAlloggioMap[immobile.slug] || []
+                }));
+
+                return res.status(200).json({
+                    status: "success",
+                    immobili: immobiliFinali,
+                });
             });
         });
     });
 };
-
-
-
 
 const show = (req, res, next) => {
 
