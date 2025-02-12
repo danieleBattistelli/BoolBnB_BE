@@ -24,7 +24,7 @@ const index = (req, res) => {
 
     // Gestione dinamica di altri parametri di filtro
     const allowedFilters = ["stanze", "bagni", "superficie_min", "superficie_max"];
-    
+
     Object.keys(req.query).forEach((key) => {
         if (allowedFilters.includes(key)) {
             switch (key) {
@@ -294,18 +294,22 @@ const store = (req, res) => {
     // Validazione dei campi numerici
     const numberFields = { mq, bagni, locali, posti_letto };
     for (const [key, value] of Object.entries(numberFields)) {
-        if (typeof value !== "number" || value < 0 || !Number.isInteger) {
+        const intValue = parseInt(value);
+        console.log("value:", intValue, typeof (intValue));
+        if (typeof intValue !== "number" || intValue < 0 || !Number.isInteger || isNaN(intValue)) {
             if (!isResponseSent) {
                 isResponseSent = true;
                 return res.status(400).json({ status: "fail", message: `Il campo ${key} deve essere un numero positivo.` });
             }
         }
-        if (key !== mq && value < 10) {
-            if (!isResponseSent) {
-                isResponseSent = true;
-                return res.status(400).json({ status: "error", message: `Il campo ${key} deve esere minore e uguale a 10.` });
+        if (key !== "mq") {
+            console.log(intValue);
+            if (!(intValue <= 10 && intValue >= 0)) {
+                if (!isResponseSent) {
+                    isResponseSent = true;
+                    return res.status(400).json({ status: "error", message: `Il campo ${key} deve essere minore o uguale a 10.` });
+                }
             }
-
         }
     }
 
