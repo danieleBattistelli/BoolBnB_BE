@@ -3,37 +3,54 @@ import connection from "../data/db.js";
 import slugify from "slugify";
 
 const index = (req, res) => {
-    let sqlImmobili = "SELECT * FROM immobili WHERE data_eliminazione IS NULL";
+    let sqlImmobili = `
+        SELECT i.*, COALESCE(v.voto_medio, 0) AS voto_medio
+        FROM immobili i
+        LEFT JOIN (
+            SELECT id_immobile, CAST(AVG(voto) AS FLOAT) AS voto_medio 
+            FROM recensioni 
+            GROUP BY id_immobile
+        ) v ON i.id = v.id_immobile
+        WHERE i.data_eliminazione IS NULL
+    `;
     const params = [];
 
     // Gestione del parametro 'search' per indirizzo_completo
     const search = req.query.search;
     if (search) {
-        sqlImmobili += " AND indirizzo_completo LIKE ?";
+        sqlImmobili += " AND i.indirizzo_completo LIKE ?";
         params.push(`%${search}%`);
     }
 
     // Gestione dinamica di altri parametri di filtro
-    const allowedFilters = ["locali", "bagni", "posti_letto", "superficie_min", "superficie_max"];
+    const allowedFilters = ["stanze", "bagni", "superficie_min", "superficie_max"];
     
     Object.keys(req.query).forEach((key) => {
         if (allowedFilters.includes(key)) {
             switch (key) {
                 case "superficie_min":
-                    sqlImmobili += " AND mq >= ?";
+                    sqlImmobili += " AND i.superficie >= ?";
                     params.push(req.query[key]);
                     break;
                 case "superficie_max":
-                    sqlImmobili += " AND mq <= ?";
+                    sqlImmobili += " AND i.superficie <= ?";
                     params.push(req.query[key]);
                     break;
                 default:
-                    sqlImmobili += ` AND ${key} >= ?`;
+                    sqlImmobili += ` AND i.${key} >= ?`;
                     params.push(req.query[key]);
                     break;
             }
         }
     });
+
+    // Gestione ordinamento per voto medio
+    const orderByVoto = req.query.order_by_voto;
+    if (orderByVoto === "asc") {
+        sqlImmobili += " ORDER BY voto_medio ASC";
+    } else if (orderByVoto === "desc") {
+        sqlImmobili += " ORDER BY voto_medio DESC";
+    }
 
     connection.query(sqlImmobili, params, (err, immobili) => {
         if (err) return res.status(500).json({ status: "fail", message: err });
@@ -42,66 +59,53 @@ const index = (req, res) => {
             return res.status(404).json({ status: "fail", message: "Nessun immobile trovato" });
         }
 
-        const sqlVotiMedi = 
-            "SELECT id_immobile, CAST(AVG(voto) AS FLOAT) AS voto_medio FROM recensioni GROUP BY id_immobile;";
+        // Ottenere gli slug degli immobili
+        const slugs = immobili.map(immobile => immobile.slug);
 
-        connection.query(sqlVotiMedi, (err, voti) => {
-            if (err) return res.status(500).json({ status: "fail", message: err });
-
-            const votoMap = {};
-            voti.forEach(({ id_immobile, voto_medio }) => {
-                votoMap[id_immobile] = voto_medio;
+        if (slugs.length === 0) {
+            return res.status(200).json({
+                status: "success",
+                results: immobili.map(immobile => ({
+                    ...immobile,
+                    immagini: []
+                })),
             });
+        }
 
-            // Ottenere gli slug degli immobili
-            const slugs = immobili.map(immobile => immobile.slug);
+        const sqlImmagini = `
+            SELECT slug_immobile, id, nome_immagine
+            FROM immagini
+            WHERE slug_immobile IN (?);
+        `;
 
-            if (slugs.length === 0) {
-                return res.status(200).json({
-                    status: "success",
-                    results: immobili.map(immobile => ({
-                        ...immobile,
-                        voto_medio: votoMap[immobile.id] || null,
-                        immagini: []
-                    })),
-                });
+        connection.query(sqlImmagini, [slugs], (err, immagini) => {
+            if (err) {
+                return res.status(500).json({ status: "fail", message: err });
             }
 
-            const sqlImmagini = `
-                SELECT slug_immobile, id, nome_immagine
-                FROM immagini
-                WHERE slug_immobile IN (?);
-            `;
-
-            connection.query(sqlImmagini, [slugs], (err, immagini) => {
-                if (err) {
-                    return res.status(500).json({ status: "fail", message: err });
+            // Raggruppare le immagini per slug_immobile
+            const immaginiMap = {};
+            immagini.forEach(({ slug_immobile, id, nome_immagine }) => {
+                if (!immaginiMap[slug_immobile]) {
+                    immaginiMap[slug_immobile] = [];
                 }
+                immaginiMap[slug_immobile].push({ id, nome_immagine });
+            });
 
-                // Raggruppare le immagini per slug_immobile
-                const immaginiMap = {};
-                immagini.forEach(({ slug_immobile, id, nome_immagine }) => {
-                    if (!immaginiMap[slug_immobile]) {
-                        immaginiMap[slug_immobile] = [];
-                    }
-                    immaginiMap[slug_immobile].push({ id, nome_immagine });
-                });
+            // Associare le immagini agli immobili corrispondenti
+            const immobiliFinali = immobili.map(immobile => ({
+                ...immobile,
+                immagini: immaginiMap[immobile.slug] || [],
+            }));
 
-                // Associare le immagini agli immobili corrispondenti
-                const immobiliFinali = immobili.map(immobile => ({
-                    ...immobile,
-                    voto_medio: votoMap[immobile.id] || null,
-                    immagini: immaginiMap[immobile.slug] || [],
-                }));
-
-                return res.status(200).json({
-                    status: "success",
-                    immobili: immobiliFinali,
-                });
+            return res.status(200).json({
+                status: "success",
+                immobili: immobiliFinali,
             });
         });
     });
 };
+
 
 
 
