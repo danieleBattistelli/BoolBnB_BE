@@ -189,6 +189,7 @@ const show = (req, res, next) => {
                         results: {
                             immobile: {
                                 ...immobile[0],
+                                tot_recensioni: recensioni.length,
                                 recensioni: recensioni || [],
                             },
                             immagini: immagini,
