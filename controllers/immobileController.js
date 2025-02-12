@@ -38,35 +38,69 @@ const index = (req, res) => {
     });
 };
 
-const show = (req, res) => {
+const show = (req, res, next) => {
+
+    const sqlId = ` SELECT immobili.id
+    FROM immobili
+    WHERE immobili.slug = ?`;
+
     const slug = req.params.slug;
+    let idImmobile 
 
-    const sqlImmobile = `SELECT * FROM immobili WHERE slug = ?`;
-
-    connection.query(sqlImmobile, [slug], (err, immobili) => {
-        if (err) return res.status(500).json({ status: "fail", message: err });
-
-        if (immobili.length === 0) {
-            return res.status(404).json({
-                status: "fail",
-                message: `Immobile con slug '${slug}' non trovato.`,
-            });
+    connection.query(sqlId, [slug], (err, result) => {
+        if(err) {
+            return res.status(500).json({ status: "fail", message: err });
         }
 
-        const immobile = immobili[0];
-
-        if (immobile.data_eliminazione) {
-            return res.status(404).json({
-                status: "fail",
-                message: `L'immobile con slug '${slug}' è stato eliminato e non è più disponibile.`,
-            });
+        else if (!result) {
+            return res.status(404).json({ status: "fail", message: "nessun immobile trovato"});
         }
 
-        return res.status(200).json({
-            status: "success",
-            immobile: immobile
-        });
+        idImmobile = result[0].id;
+        console.log(idImmobile);
     });
+
+    let sql = `SELECT *
+    FROM immobili
+    WHERE immobili.slug = ?`;
+
+
+    connection.query(sql, [slug], (err, immobile) => {
+        if (err) {
+            return res.status(500).json({ status: "fail", message: err });
+        }
+        else if (immobile.length === 0) {
+            return res.status(404).json({
+                status: "fail",
+                message: `immobile con slug ${slug} non trovato.`,
+            });
+        }
+
+        let sqlRecensioni = `SELECT recensioni.id, recensioni.username, recensioni.recensione, recensioni.voto, recensioni.data
+        FROM immobili
+        INNER JOIN recensioni
+        ON recensioni.id_immobile = immobili.id
+        
+        WHERE immobili.id = ?`;
+
+        connection.query(sqlRecensioni, idImmobile, (err, recensioni) => {
+            if (err) {
+                return res.status(500).json({ status: "fail", message: err });
+            }
+
+            return res.status(200).json({
+                status: "success",
+                results: {
+                    ...immobile[0],
+                    recensioni: recensioni || [],
+                },
+            });
+
+        })
+
+
+
+    })
 };
 
 const destroy = (req, res) => {
@@ -75,11 +109,11 @@ const destroy = (req, res) => {
     const checkSql = `SELECT data_eliminazione FROM immobili WHERE slug = ?`;
 
     connection.query(checkSql, [slug], (err, results) => {
-        if (err) return res.status(500).json({ status: "error", message: err });
+        if (err) return res.status(500).json({ status: "fail", message: err });
 
         if (results.length === 0) {
             return res.status(404).json({
-                status: "error",
+                status: "fail",
                 message: `Nessun immobile con slug '${slug}' trovato.`,
             });
         }
@@ -96,7 +130,7 @@ const destroy = (req, res) => {
         const sqlUpdate = `UPDATE immobili SET data_eliminazione = NOW() WHERE slug = ?`;
 
         connection.query(sqlUpdate, [slug], (err) => {
-            if (err) return res.status(500).json({ status: "error", message: err });
+            if (err) return res.status(500).json({ status: "fail", message: err });
 
             return res.sendStatus(204);
         });
@@ -107,7 +141,7 @@ const store = (req, res) => {
     const { immobile, tipi_alloggio } = req.body;
 
     if (!immobile) {
-        return res.status(400).json({ status: "error", message: "Dati immobile mancanti" });
+        return res.status(400).json({ status: "fail", message: "Dati immobile mancanti" });
     }
 
     const {
@@ -132,7 +166,7 @@ const store = (req, res) => {
         if (!value || typeof value !== "string" || value.trim().length < 3) {
             if (!isResponseSent) {
                 isResponseSent = true;
-                return res.status(400).json({ status: "error", message: `Il campo ${key} deve contenere almeno 3 caratteri.` });
+                return res.status(400).json({ status: "fail", message: `Il campo ${key} deve contenere almeno 3 caratteri.` });
             }
         }
     }
@@ -141,7 +175,7 @@ const store = (req, res) => {
     if (!email_proprietario || typeof email_proprietario !== "string" || email_proprietario.length < 5 || !email_proprietario.includes("@")) {
         if (!isResponseSent) {
             isResponseSent = true;
-            return res.status(400).json({ status: "error", message: "L'email deve avere almeno 5 caratteri e un formato valido." });
+            return res.status(400).json({ status: "fail", message: "L'email deve avere almeno 5 caratteri e un formato valido." });
         }
     }
 
@@ -149,7 +183,7 @@ const store = (req, res) => {
     if (!username_proprietario || typeof username_proprietario !== "string" || username_proprietario.trim().length < 2) {
         if (!isResponseSent) {
             isResponseSent = true;
-            return res.status(400).json({ status: "error", message: "Lo username deve avere almeno 2 caratteri." });
+            return res.status(400).json({ status: "fail", message: "Lo username deve avere almeno 2 caratteri." });
         }
     }
 
@@ -159,7 +193,7 @@ const store = (req, res) => {
         if (typeof value !== "number" || value < 0) {
             if (!isResponseSent) {
                 isResponseSent = true;
-                return res.status(400).json({ status: "error", message: `Il campo ${key} deve essere un numero positivo.` });
+                return res.status(400).json({ status: "fail", message: `Il campo ${key} deve essere un numero positivo.` });
             }
         }
     }
@@ -172,7 +206,7 @@ const store = (req, res) => {
         if (err) {
             if (!isResponseSent) {
                 isResponseSent = true;
-                return res.status(500).json({ status: "error", message: "Errore nel controllo dello slug", error: err });
+                return res.status(500).json({ status: "fail", message: "Errore nel controllo dello slug", error: err });
             }
         }
 
@@ -203,7 +237,7 @@ const store = (req, res) => {
                 if (err) {
                     if (!isResponseSent) {
                         isResponseSent = true;
-                        return res.status(500).json({ status: "error", message: "Errore durante l'inserimento dell'immobile", error: err });
+                        return res.status(500).json({ status: "fail", message: "Errore durante l'inserimento dell'immobile", error: err });
                     }
                 }
 
@@ -213,12 +247,12 @@ const store = (req, res) => {
                     if (err) {
                         if (!isResponseSent) {
                             isResponseSent = true;
-                            return res.status(500).json({ status: "error", message: "Errore nella verifica dello slug dell'immobile", error: err });
+                            return res.status(500).json({ status: "fail", message: "Errore nella verifica dello slug dell'immobile", error: err });
                         }
                     }
 
                     if (result.length === 0) {
-                        return res.status(400).json({ status: "error", message: "Lo slug dell'immobile non è valido" });
+                        return res.status(400).json({ status: "fail", message: "Lo slug dell'immobile non è valido" });
                     }
 
                     // Se lo slug esiste, continua con l'inserimento dei tipi di alloggio
@@ -228,7 +262,7 @@ const store = (req, res) => {
                     connection.query(tipiAlloggioSql, [valoriTipiAlloggio], (err) => {
                         if (err && !isResponseSent) {
                             isResponseSent = true;
-                            return res.status(500).json({ status: "error", message: "Errore durante l'inserimento dei tipi di alloggio", error: err });
+                            return res.status(500).json({ status: "fail", message: "Errore durante l'inserimento dei tipi di alloggio", error: err });
                         }
 
                         if (!isResponseSent) {
