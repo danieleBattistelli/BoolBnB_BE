@@ -156,11 +156,18 @@ const store = (req, res) => {
     // Validazione dei campi numerici
     const numberFields = { mq, bagni, locali, posti_letto };
     for (const [key, value] of Object.entries(numberFields)) {
-        if (typeof value !== "number" || value < 0) {
+        if (typeof value !== "number" || value < 0 || !Number.isInteger) {
             if (!isResponseSent) {
                 isResponseSent = true;
                 return res.status(400).json({ status: "error", message: `Il campo ${key} deve essere un numero positivo.` });
             }
+        }
+        if (key !== mq && value < 10) {
+            if (!isResponseSent) {
+                isResponseSent = true;
+                return res.status(400).json({ status: "error", message: `Il campo ${key} deve esere minore e uguale a 10.` });
+            }
+
         }
     }
 
