@@ -4,10 +4,10 @@ import slugify from "slugify";
 
 const index = (req, res) => {
     let sqlImmobili = `
-        SELECT i.*, COALESCE(v.voto_medio, 0) AS voto_medio
+        SELECT i.*, COALESCE(v.voto_medio, 0) AS voto_medio, COALESCE(v.tot_recensioni, 0) AS tot_recensioni
         FROM immobili i
         LEFT JOIN (
-            SELECT id_immobile, CAST(AVG(voto) AS FLOAT) AS voto_medio 
+            SELECT id_immobile, CAST(AVG(voto) AS FLOAT) AS voto_medio , COUNT(recensioni.id) AS tot_recensioni
             FROM recensioni 
             GROUP BY id_immobile
         ) v ON i.id = v.id_immobile
@@ -61,6 +61,8 @@ const index = (req, res) => {
 
         // Ottenere gli slug degli immobili
         const slugs = immobili.map(immobile => immobile.slug);
+        
+        
 
         if (slugs.length === 0) {
             return res.status(200).json({
