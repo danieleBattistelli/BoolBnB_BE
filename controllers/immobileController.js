@@ -129,103 +129,92 @@ const index = (req, res) => {
 };
 
 const show = (req, res, next) => {
-
-    const sqlId = ` SELECT immobili.id
-    FROM immobili
-    WHERE immobili.slug = ?`;
-
     const slug = req.params.slug;
-    let idImmobile
+
+    // Primo step: ottenere l'id dell'immobile
+    const sqlId = `SELECT id FROM immobili WHERE slug = ?`;
 
     connection.query(sqlId, [slug], (err, result) => {
         if (err) {
             return res.status(500).json({ status: "fail", message: err });
         }
 
-        else if (!result) {
-            return res.status(404).json({ status: "fail", message: "nessun immobile trovato" });
+        // Se nessun immobile è stato trovato
+        if (!result.length) {
+            return res.status(404).json({ status: "fail", message: "Nessun immobile trovato" });
         }
 
-        idImmobile = result[0].id;
-        console.log(idImmobile);
-    });
+        const idImmobile = result[0].id;
 
-    let sql = `SELECT *
-    FROM immobili
-    WHERE immobili.slug = ?`;
+        // Secondo step: ottenere i dettagli dell'immobile
+        const sqlImmobile = `SELECT * FROM immobili WHERE slug = ?`;
 
-
-    connection.query(sql, [slug], (err, immobile) => {
-        if (err) {
-            return res.status(500).json({ status: "fail", message: err });
-        }
-        else if (immobile.length === 0) {
-            return res.status(404).json({
-                status: "fail",
-                message: `immobile con slug ${slug} non trovato.`,
-            });
-        }
-
-        let sqlRecensioni = `SELECT recensioni.id, recensioni.username, recensioni.recensione, recensioni.voto, recensioni.data
-        FROM immobili
-        INNER JOIN recensioni
-        ON recensioni.id_immobile = immobili.id
-        WHERE immobili.id = ?`;
-
-        connection.query(sqlRecensioni, idImmobile, (err, recensioni) => {
+        connection.query(sqlImmobile, [slug], (err, immobile) => {
             if (err) {
                 return res.status(500).json({ status: "fail", message: err });
             }
 
-            const sqlImmagini = `
-                SELECT immagini.id, immagini.nome_immagine
-                FROM immagini
-                WHERE slug_immobile = ?
+            if (immobile.length === 0) {
+                return res.status(404).json({ status: "fail", message: `Immobile con slug ${slug} non trovato.` });
+            }
+
+            // Terzo step: ottenere le recensioni
+            const sqlRecensioni = `
+                SELECT id, username, recensione, voto, data
+                FROM recensioni
+                WHERE id_immobile = ?
             `;
 
-            connection.query(sqlImmagini, [slug], (err, immagini) => {
+            connection.query(sqlRecensioni, [idImmobile], (err, recensioni) => {
                 if (err) {
                     return res.status(500).json({ status: "fail", message: err });
                 }
 
-                const sqlTipiAlloggi = `
-                    SELECT tipi_alloggio.*
-                    FROM tipi_alloggio
-                    INNER JOIN immobili_tipi_alloggio
-                    ON tipi_alloggio.id = immobili_tipi_alloggio.tipo_alloggio_id
-                    WHERE immobili_tipi_alloggio.slug_immobile = ? 
+                // Quarto step: ottenere le immagini
+                const sqlImmagini = `
+                    SELECT id, nome_immagine
+                    FROM immagini
+                    WHERE slug_immobile = ?
                 `;
 
-                connection.query(sqlTipiAlloggi, [slug], (err, tipiAlloggio) => {
+                connection.query(sqlImmagini, [slug], (err, immagini) => {
                     if (err) {
                         return res.status(500).json({ status: "fail", message: err });
                     }
 
-                    return res.status(200).json({
-                        status: "success",
-                        results: {
-                            immobile: {
-                                ...immobile[0],
-                                tot_recensioni: recensioni.length,
-                                recensioni: recensioni || [],
-                            },
-                            immagini: immagini,
-                            tipi_alloggio: tipiAlloggio,
+                    // Quinto step: ottenere i tipi di alloggio
+                    const sqlTipiAlloggi = `
+                        SELECT ta.id, ta.nome_tipo_alloggio
+                        FROM tipi_alloggio ta
+                        INNER JOIN immobili_tipi_alloggio ita ON ta.id = ita.tipo_alloggio_id
+                        WHERE ita.slug_immobile = ? 
+                    `;
+
+                    connection.query(sqlTipiAlloggi, [slug], (err, tipiAlloggio) => {
+                        if (err) {
+                            return res.status(500).json({ status: "fail", message: err });
                         }
+
+                        // Invio della risposta finale con tutti i dati raccolti
+                        return res.status(200).json({
+                            status: "success",
+                            results: {
+                                immobile: {
+                                    ...immobile[0],
+                                    tot_recensioni: recensioni.length,
+                                    recensioni: recensioni || [],
+                                },
+                                immagini: immagini || [],
+                                tipi_alloggio: tipiAlloggio || []
+                            }
+                        });
                     });
-                })
-
-
+                });
             });
-
-
-
-        })
-
-
-
-    })
+        });
+    });
 };
+
 
 const destroy = (req, res) => {
     const slug = req.params.slug;
