@@ -208,9 +208,16 @@ const show = (req, res, next) => {
                         }
 
                         function calcolaMedia(array) {
-                            if (array.length === 0) return 0;  // Evita divisione per zero
-                            return array.reduce((a, b) => a + b, 0) / array.length;
+                            if (array.length === 0) return 0;
+                            
+                            const numeri = array.map(item => {
+                                const numero = parseInt(item, 10); 
+                                return isNaN(numero) ? 0 : numero;
+                            });
+                        
+                            return numeri.reduce((a, b) => a + b, 0) / numeri.length;
                         }
+                        
 
                         const numeri = [10, 20, 30, 40, 50];
                         console.log("Media:", calcolaMedia(numeri));
@@ -277,6 +284,7 @@ const destroy = (req, res) => {
 
 const store = (req, res) => {
     const { immobile, tipi_alloggio } = req.body;
+    const nomiImmagini = req.files ? req.files.map(file => file.filename) : [];
 
     if (!immobile) {
         return res.status(400).json({ status: "fail", message: "Dati immobile mancanti" });
@@ -292,71 +300,16 @@ const store = (req, res) => {
         bagni,
         locali,
         posti_letto,
-        immagini
     } = immobile;
 
-    // Flag per evitare risposte multiple
     let isResponseSent = false;
 
-    // Validazione dei campi testuali
-    const textFields = { titolo_descrittivo, indirizzo_completo, descrizione };
-    for (const [key, value] of Object.entries(textFields)) {
-        if (!value || typeof value !== "string" || value.trim().length < 3) {
-            if (!isResponseSent) {
-                isResponseSent = true;
-                return res.status(400).json({ status: "fail", message: `Il campo ${key} deve contenere almeno 3 caratteri.` });
-            }
-        }
-    }
-
-    // Validazione email
-    if (!email_proprietario || typeof email_proprietario !== "string" || email_proprietario.length < 5 || !email_proprietario.includes("@")) {
-        if (!isResponseSent) {
-            isResponseSent = true;
-            return res.status(400).json({ status: "fail", message: "L'email deve avere almeno 5 caratteri e un formato valido." });
-        }
-    }
-
-    // Validazione username
-    if (!username_proprietario || typeof username_proprietario !== "string" || username_proprietario.trim().length < 2) {
-        if (!isResponseSent) {
-            isResponseSent = true;
-            return res.status(400).json({ status: "fail", message: "Lo username deve avere almeno 2 caratteri." });
-        }
-    }
-
-    // Validazione dei campi numerici
-    const numberFields = { mq, bagni, locali, posti_letto };
-    for (const [key, value] of Object.entries(numberFields)) {
-        const intValue = parseInt(value);
-        console.log("value:", intValue, typeof (intValue));
-        if (typeof intValue !== "number" || intValue < 0 || !Number.isInteger || isNaN(intValue)) {
-            if (!isResponseSent) {
-                isResponseSent = true;
-                return res.status(400).json({ status: "fail", message: `Il campo ${key} deve essere un numero positivo.` });
-            }
-        }
-        if (key !== "mq") {
-            console.log(intValue);
-            if (!(intValue <= 10 && intValue >= 0)) {
-                if (!isResponseSent) {
-                    isResponseSent = true;
-                    return res.status(400).json({ status: "error", message: `Il campo ${key} deve essere minore o uguale a 10.` });
-                }
-            }
-        }
-    }
-
     let slug = slugify(titolo_descrittivo, { lower: true, strict: true });
-
     const checkSlugSql = `SELECT COUNT(*) AS count FROM immobili WHERE slug = ?`;
 
     connection.query(checkSlugSql, [slug], (err, result) => {
         if (err) {
-            if (!isResponseSent) {
-                isResponseSent = true;
-                return res.status(500).json({ status: "fail", message: "Errore nel controllo dello slug", error: err });
-            }
+            return res.status(500).json({ status: "fail", message: "Errore nel controllo dello slug", error: err });
         }
 
         if (result[0].count > 0) {
@@ -382,49 +335,42 @@ const store = (req, res) => {
         connection.query(
             sqlInsertImmobile,
             [email_proprietario, username_proprietario, titolo_descrittivo, slug, indirizzo_completo, descrizione, mq, bagni, locali, posti_letto],
-            (err, result) => {
+            (err) => {
                 if (err) {
-                    if (!isResponseSent) {
-                        isResponseSent = true;
-                        return res.status(500).json({ status: "fail", message: "Errore durante l'inserimento dell'immobile", error: err });
-                    }
+                    return res.status(500).json({ status: "fail", message: "Errore durante l'inserimento dell'immobile", error: err });
                 }
 
-                // Verifica che lo slug esista nella tabella immobili
-                const checkImmobileSlug = `SELECT slug FROM immobili WHERE slug = ?`;
-                connection.query(checkImmobileSlug, [slug], (err, result) => {
+                const tipiAlloggioSql = `INSERT INTO Immobili_Tipi_Alloggio (slug_immobile, tipo_alloggio_id) VALUES ?`;
+                const valoriTipiAlloggio = tipi_alloggio.map(tipoId => [slug, tipoId]);
+
+                connection.query(tipiAlloggioSql, [valoriTipiAlloggio], (err) => {
                     if (err) {
-                        if (!isResponseSent) {
-                            isResponseSent = true;
-                            return res.status(500).json({ status: "fail", message: "Errore nella verifica dello slug dell'immobile", error: err });
-                        }
+                        return res.status(500).json({ status: "fail", message: "Errore durante l'inserimento dei tipi di alloggio", error: err });
                     }
 
-                    if (result.length === 0) {
-                        return res.status(400).json({ status: "fail", message: "Lo slug dell'immobile non è valido" });
-                    }
+                    if (nomiImmagini.length > 0) {
+                        const sqlInsertImmagini = `INSERT INTO immagini (nome_immagine, slug_immobile) VALUES ?`;
+                        const valoriImmagini = nomiImmagini.map(nome => [nome, slug]);
 
-                    // Se lo slug esiste, continua con l'inserimento dei tipi di alloggio
-                    const tipiAlloggioSql = `INSERT INTO Immobili_Tipi_Alloggio (slug_immobile, tipo_alloggio_id) VALUES ?`;
-                    const valoriTipiAlloggio = tipi_alloggio.map(tipoId => [slug, tipoId]); // Usa lo slug anziché immobileId
+                        connection.query(sqlInsertImmagini, [valoriImmagini], (err) => {
+                            if (err) {
+                                return res.status(500).json({ status: "fail", message: "Errore durante l'inserimento delle immagini", error: err });
+                            }
 
-                    connection.query(tipiAlloggioSql, [valoriTipiAlloggio], (err) => {
-                        if (err && !isResponseSent) {
-                            isResponseSent = true;
-                            return res.status(500).json({ status: "fail", message: "Errore durante l'inserimento dei tipi di alloggio", error: err });
-                        }
-
-                        if (!isResponseSent) {
-                            isResponseSent = true;
                             return res.status(201).json({
                                 status: "success",
                                 immobile_slug: slug,
-                                immobile: immobile
+                                immobile: immobile,
                             });
-                        }
-                    });
+                        });
+                    } else {
+                        return res.status(201).json({
+                            status: "success",
+                            immobile_slug: slug,
+                            immobile: immobile,
+                        });
+                    }
                 });
-
             }
         );
     });
@@ -432,9 +378,14 @@ const store = (req, res) => {
 
 
 
+
 const modify = (req, res) => {
     const { slug } = req.params;
     const { immobile, tipi_alloggio, immagini } = req.body;
+
+    const nomiImmagini = req.files ? req.files.map(file => file.filename) : [];
+
+    immagini.push(...nomiImmagini);
 
     if (!slug) {
         return res.status(400).json({ status: "fail", message: "Slug dell'immobile mancante" });

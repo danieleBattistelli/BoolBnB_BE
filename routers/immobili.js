@@ -1,6 +1,7 @@
 
 import express from "express";
 import immobileController from "../controllers/immobileController.js";
+import { uploadMultiple } from "../middlewares/fileUpload.js";
 
 const router = express.Router();
 
@@ -14,7 +15,7 @@ router.get("/:slug" ,immobileController.show);
 router.delete("/:slug", immobileController.destroy);
 
 // STORE
-router.post("/", immobileController.store);
+router.post("/", uploadMultiple, immobileController.store);
 
 // MODIFY
 router.put("/:slug", immobileController.modify);
