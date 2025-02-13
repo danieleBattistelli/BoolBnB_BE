@@ -4,22 +4,25 @@ import slugify from "slugify";
 
 const index = (req, res) => {
     let sqlImmobili = `
-        SELECT i.*, COALESCE(v.voto_medio, 0) AS voto_medio, COALESCE(v.tot_recensioni, 0) AS tot_recensioni
+       SELECT 
+            i.*, 
+            COALESCE(v.voto_medio, 0) AS voto_medio, 
+            COALESCE(v.tot_recensioni, 0) AS tot_recensioni,
+            COALESCE(GROUP_CONCAT(DISTINCT t.nome_tipo_alloggio SEPARATOR ', '), '') AS tipi_alloggio
         FROM immobili i
         LEFT JOIN (
-            SELECT id_immobile, CAST(AVG(voto) AS FLOAT) AS voto_medio, COUNT(recensioni.id) AS tot_recensioni
+            SELECT 
+                id_immobile, 
+                CAST(AVG(voto) AS FLOAT) AS voto_medio, 
+                COUNT(recensioni.id) AS tot_recensioni
             FROM recensioni 
             GROUP BY id_immobile
         ) v ON i.id = v.id_immobile
-        RIGHT JOIN (
-			SELECT tipo_alloggio_id, slug_immobile
-            FROM immobili_tipi_alloggio
-        ) it ON i.slug = it.slug_immobile
-        RIGHT JOIN (
-			SELECT nome_tipo_alloggio, id
-            FROM tipi_alloggio
-        ) t ON it.tipo_alloggio_id = t.id
+        LEFT JOIN immobili_tipi_alloggio it ON i.slug = it.slug_immobile
+        LEFT JOIN tipi_alloggio t ON it.tipo_alloggio_id = t.id
         WHERE i.data_eliminazione IS NULL
+        GROUP BY i.id
+
     `;
     const params = [];
 
@@ -209,15 +212,15 @@ const show = (req, res, next) => {
 
                         function calcolaMedia(array) {
                             if (array.length === 0) return 0;
-                            
+
                             const numeri = array.map(item => {
-                                const numero = parseInt(item, 10); 
+                                const numero = parseInt(item, 10);
                                 return isNaN(numero) ? 0 : numero;
                             });
-                        
+
                             return numeri.reduce((a, b) => a + b, 0) / numeri.length;
                         }
-                        
+
 
                         const numeri = [10, 20, 30, 40, 50];
                         console.log("Media:", calcolaMedia(numeri));
