@@ -11,6 +11,14 @@ const index = (req, res) => {
             FROM recensioni 
             GROUP BY id_immobile
         ) v ON i.id = v.id_immobile
+        RIGHT JOIN (
+			SELECT tipo_alloggio_id, slug_immobile
+            FROM immobili_tipi_alloggio
+        ) it ON i.slug = it.slug_immobile
+        RIGHT JOIN (
+			SELECT nome_tipo_alloggio, id
+            FROM tipi_alloggio
+        ) t ON it.tipo_alloggio_id = t.id
         WHERE i.data_eliminazione IS NULL
     `;
     const params = [];
@@ -23,7 +31,7 @@ const index = (req, res) => {
     }
 
     // Gestione dinamica di altri parametri di filtro
-    const allowedFilters = ["stanze", "bagni", "superficie_min", "superficie_max"];
+    const allowedFilters = ["stanze", "bagni", "superficie_min", "superficie_max", "tipi_alloggio"];
 
     Object.keys(req.query).forEach((key) => {
         if (allowedFilters.includes(key)) {
@@ -34,6 +42,10 @@ const index = (req, res) => {
                     break;
                 case "superficie_max":
                     sqlImmobili += " AND i.superficie <= ?";
+                    params.push(req.query[key]);
+                    break;
+                case "tipi_alloggio":
+                    sqlImmobili += " AND t.id = ?";
                     params.push(req.query[key]);
                     break;
                 default:
@@ -61,7 +73,7 @@ const index = (req, res) => {
 
         // Ottenere gli slug degli immobili
         const slugs = immobili.map(immobile => immobile.slug);
-        
+
         if (slugs.length === 0) {
             return res.status(200).json({
                 status: "success",
@@ -195,6 +207,18 @@ const show = (req, res, next) => {
                             return res.status(500).json({ status: "fail", message: err });
                         }
 
+                        function calcolaMedia(array) {
+                            if (array.length === 0) return 0;  // Evita divisione per zero
+                            return array.reduce((a, b) => a + b, 0) / array.length;
+                        }
+
+                        const numeri = [10, 20, 30, 40, 50];
+                        console.log("Media:", calcolaMedia(numeri));
+
+                        const voti = [];
+
+                        recensioni.forEach((recensione) => voti.push(recensione.voto));
+
                         // Invio della risposta finale con tutti i dati raccolti
                         return res.status(200).json({
                             status: "success",
@@ -202,6 +226,7 @@ const show = (req, res, next) => {
                                 immobile: {
                                     ...immobile[0],
                                     tot_recensioni: recensioni.length,
+                                    voto_medio: calcolaMedia(voti),
                                     recensioni: recensioni || [],
                                 },
                                 immagini: immagini || [],
