@@ -44,3 +44,5 @@ debug.log
 
 # Escludere i file di configurazione di sistema
 *.swp
+
+**images

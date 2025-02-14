@@ -13,6 +13,6 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Middleware per il caricamento multiplo
-export const uploadMultiple = upload.array("images", 10); // "images" è il nome del campo nel form, massimo 10 file
+export const uploadMultiple = upload.array("immagini[]", 30);
 
 export default upload;

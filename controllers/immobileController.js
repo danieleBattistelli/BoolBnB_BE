@@ -286,11 +286,24 @@ const destroy = (req, res) => {
 const store = (req, res) => {
     const { immobile, tipi_alloggio } = req.body;
     const nomiImmagini = req.files ? req.files.map(file => file.filename) : [];
-
     
-    console.log(req.body);
 
-    if (!immobile) {
+    console.log("Files ricevuti:", req.files);
+    console.log("Body ricevuto:", req.body);
+    if (
+        !immobile ||
+        !(
+            immobile.username_proprietario &&
+            immobile.email_proprietario &&
+            immobile.titolo_descrittivo &&
+            immobile.indirizzo_completo &&
+            immobile.descrizione &&
+            immobile.mq &&
+            immobile.bagni &&
+            immobile.locali &&
+            immobile.posti_letto
+        )
+    ) {
         return res.status(400).json({ status: "fail", message: "Dati immobile mancanti" });
     }
 
