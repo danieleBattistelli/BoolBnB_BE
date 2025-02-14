@@ -4,26 +4,36 @@ import slugify from "slugify";
 
 const index = (req, res) => {
     let sqlImmobili = `
-       SELECT 
-            i.*, 
-            COALESCE(v.voto_medio, 0) AS voto_medio, 
-            COALESCE(v.tot_recensioni, 0) AS tot_recensioni,
-            COALESCE(GROUP_CONCAT(DISTINCT t.nome_tipo_alloggio SEPARATOR ', '), '') AS tipi_alloggio
-        FROM immobili i
-        LEFT JOIN (
-            SELECT 
-                id_immobile, 
-                CAST(AVG(voto) AS FLOAT) AS voto_medio, 
-                COUNT(recensioni.id) AS tot_recensioni
-            FROM recensioni 
-            GROUP BY id_immobile
-        ) v ON i.id = v.id_immobile
-        LEFT JOIN immobili_tipi_alloggio it ON i.slug = it.slug_immobile
-        LEFT JOIN tipi_alloggio t ON it.tipo_alloggio_id = t.id
-        WHERE i.data_eliminazione IS NULL
-        GROUP BY i.id
-
+    SELECT 
+        i.id, 
+        i.slug, 
+        i.email_proprietario, 
+        i.username_proprietario, 
+        i.titolo_descrittivo, 
+        i.indirizzo_completo, 
+        i.descrizione, 
+        i.mq, 
+        i.bagni, 
+        i.locali, 
+        i.posti_letto, 
+        i.data_eliminazione, 
+        COALESCE(v.voto_medio, 0) AS voto_medio, 
+        COALESCE(v.tot_recensioni, 0) AS tot_recensioni,
+        COALESCE(GROUP_CONCAT(DISTINCT t.nome_tipo_alloggio SEPARATOR ', '), '') AS tipi_alloggio
+    FROM immobili i
+    LEFT JOIN (
+        SELECT 
+            id_immobile, 
+            CAST(AVG(voto) AS FLOAT) AS voto_medio, 
+            COUNT(recensioni.id) AS tot_recensioni
+        FROM recensioni 
+        GROUP BY id_immobile
+    ) v ON i.id = v.id_immobile
+    LEFT JOIN immobili_tipi_alloggio it ON i.slug = it.slug_immobile
+    LEFT JOIN tipi_alloggio t ON it.tipo_alloggio_id = t.id
+    WHERE i.data_eliminazione IS NULL
     `;
+
     const params = [];
 
     // Gestione del parametro 'search' per indirizzo_completo
@@ -34,7 +44,7 @@ const index = (req, res) => {
     }
 
     // Gestione dinamica di altri parametri di filtro
-    const allowedFilters = ["stanze", "bagni", "superficie_min", "superficie_max", "tipi_alloggio"];
+    const allowedFilters = ["locali", "bagni", "superficie_min", "superficie_max", "tipi_alloggio", "voto_medio" ];
 
     Object.keys(req.query).forEach((key) => {
         if (allowedFilters.includes(key)) {
@@ -51,6 +61,16 @@ const index = (req, res) => {
                     sqlImmobili += " AND t.id = ?";
                     params.push(req.query[key]);
                     break;
+                case "bagni":
+                    sqlImmobili += " AND i.bagni >= ?";
+                    params.push(req.query[key]); // Impostiamo il valore di `bagni` passato nella query
+                    break;
+
+                case "voto_medio":
+                    console.log(key);
+                    sqlImmobili += " AND COALESCE(v.voto_medio, 0) >= ?";
+                    params.push(req.query[key]);
+                    break;    
                 default:
                     sqlImmobili += ` AND i.${key} >= ?`;
                     params.push(req.query[key]);
@@ -67,6 +87,24 @@ const index = (req, res) => {
         sqlImmobili += " ORDER BY voto_medio DESC";
     }
 
+    // Aggiungi GROUP BY per tutte le colonne che non sono aggregate
+    sqlImmobili += `
+    GROUP BY 
+        i.id, 
+        i.slug, 
+        i.email_proprietario, 
+        i.username_proprietario, 
+        i.titolo_descrittivo, 
+        i.indirizzo_completo, 
+        i.descrizione, 
+        i.mq, 
+        i.bagni, 
+        i.locali, 
+        i.posti_letto, 
+        i.data_eliminazione
+    `;
+
+    // Esegui la query
     connection.query(sqlImmobili, params, (err, immobili) => {
         if (err) return res.status(500).json({ status: "fail", message: err });
 
