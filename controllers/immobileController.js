@@ -137,6 +137,7 @@ const index = (req, res) => {
                 return res.status(200).json({
                     status: "success",
                     immobili: immobiliFinali,
+                    count: immobiliFinali.length
                 });
             });
         });
@@ -222,9 +223,6 @@ const show = (req, res, next) => {
                         }
 
 
-                        const numeri = [10, 20, 30, 40, 50];
-                        console.log("Media:", calcolaMedia(numeri));
-
                         const voti = [];
 
                         recensioni.forEach((recensione) => voti.push(recensione.voto));
@@ -288,6 +286,9 @@ const destroy = (req, res) => {
 const store = (req, res) => {
     const { immobile, tipi_alloggio } = req.body;
     const nomiImmagini = req.files ? req.files.map(file => file.filename) : [];
+
+    
+    console.log(req.body);
 
     if (!immobile) {
         return res.status(400).json({ status: "fail", message: "Dati immobile mancanti" });
