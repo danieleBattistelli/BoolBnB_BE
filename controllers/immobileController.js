@@ -284,12 +284,12 @@ const destroy = (req, res) => {
 };
 
 const store = (req, res) => {
-    const { immobile, tipi_alloggio } = req.body;
+    const { immobile, tipi_alloggio = [] } = req.body;
     const nomiImmagini = req.files ? req.files.map(file => file.filename) : [];
-    
 
     console.log("Files ricevuti:", req.files);
     console.log("Body ricevuto:", req.body);
+
     if (
         !immobile ||
         !(
@@ -319,11 +319,9 @@ const store = (req, res) => {
         posti_letto,
     } = immobile;
 
-    let isResponseSent = false;
-
     let slug = slugify(titolo_descrittivo, { lower: true, strict: true });
-    const checkSlugSql = `SELECT COUNT(*) AS count FROM immobili WHERE slug = ?`;
 
+    const checkSlugSql = `SELECT COUNT(*) AS count FROM immobili WHERE slug = ?`;
     connection.query(checkSlugSql, [slug], (err, result) => {
         if (err) {
             return res.status(500).json({ status: "fail", message: "Errore nel controllo dello slug", error: err });
@@ -332,6 +330,43 @@ const store = (req, res) => {
         if (result[0].count > 0) {
             slug += `-${Date.now()}`;
         }
+
+        // Validazione dei campi testuali
+        const { titolo_descrittivo, indirizzo_completo, descrizione } = immobile;
+        const textFields = { titolo_descrittivo, indirizzo_completo, descrizione };
+        for (const [key, value] of Object.entries(textFields)) {
+            if (value && (typeof value !== "string" || value.trim().length < 3)) {
+                return res.status(400).json({ status: "fail", message: `Il campo ${key} deve contenere almeno 3 caratteri.` });
+            }
+        }
+
+        // Validazione campi numerici
+        const { mq, bagni, locali, posti_letto } = immobile;
+        const numberFields = { mq, bagni, locali, posti_letto };
+
+        for (const [key, value] of Object.entries(numberFields)) {
+            let numValue = parseInt(value);
+
+            // Se il valore non è un numero valido dopo la conversione
+            if (isNaN(numValue)) {
+                return res.status(400).json({
+                    status: "fail",
+                    message: `Il campo 'numero ${key}' deve essere un numero valido.`
+                });
+            }
+
+            // Assegna il numero convertito al campo originale
+            numberFields[key] = numValue;
+
+            // Controlla se il valore è minore di 0 o maggiore di 10 (eccetto per "mq")
+            if (numValue < 0 || (key !== "mq" && numValue > 10)) {
+                return res.status(400).json({
+                    status: "fail",
+                    message: `Il campo 'numero ${key}' deve essere un numero positivo e non può essere maggiore di 10.`
+                });
+            }
+        }
+
 
         const sqlInsertImmobile = `
             INSERT INTO immobili (
@@ -357,43 +392,68 @@ const store = (req, res) => {
                     return res.status(500).json({ status: "fail", message: "Errore durante l'inserimento dell'immobile", error: err });
                 }
 
-                const tipiAlloggioSql = `INSERT INTO Immobili_Tipi_Alloggio (slug_immobile, tipo_alloggio_id) VALUES ?`;
-                const valoriTipiAlloggio = tipi_alloggio.map(tipoId => [slug, tipoId]);
+                let messaggio = "Immobile creato con successo.";
 
-                connection.query(tipiAlloggioSql, [valoriTipiAlloggio], (err) => {
-                    if (err) {
-                        return res.status(500).json({ status: "fail", message: "Errore durante l'inserimento dei tipi di alloggio", error: err });
-                    }
+                const inserisciTipiAlloggio = () => {
+                    if (tipi_alloggio.length > 0) {
+                        const tipiAlloggioSql = `INSERT INTO immobili_tipi_alloggio (slug_immobile, tipo_alloggio_id) VALUES ?`;
+                        const valoriTipiAlloggio = tipi_alloggio.map(tipoId => [slug, tipoId]);
 
-                    if (nomiImmagini.length > 0) {
-                        const sqlInsertImmagini = `INSERT INTO immagini (nome_immagine, slug_immobile) VALUES ?`;
-                        const valoriImmagini = nomiImmagini.map(nome => [nome, slug]);
-
-                        connection.query(sqlInsertImmagini, [valoriImmagini], (err) => {
+                        connection.query(tipiAlloggioSql, [valoriTipiAlloggio], (err) => {
                             if (err) {
-                                return res.status(500).json({ status: "fail", message: "Errore durante l'inserimento delle immagini", error: err });
+                                return res.status(500).json({ status: "fail", message: "Errore durante l'inserimento dei tipi di alloggio", error: err });
                             }
 
+                            if (nomiImmagini.length === 0) {
+                                return res.status(201).json({
+                                    status: "success",
+                                    immobile_slug: slug,
+                                    immobile: immobile,
+                                    message: `${messaggio} Nessuna immagine caricata.`,
+                                });
+                            } else {
+                                inserisciImmagini();
+                            }
+                        });
+                    } else {
+                        messaggio += " Nessun tipo di alloggio specificato.";
+
+                        if (nomiImmagini.length === 0) {
                             return res.status(201).json({
                                 status: "success",
                                 immobile_slug: slug,
                                 immobile: immobile,
+                                message: `${messaggio} Nessuna immagine caricata.`,
                             });
-                        });
-                    } else {
+                        } else {
+                            inserisciImmagini();
+                        }
+                    }
+                };
+
+                const inserisciImmagini = () => {
+                    const sqlInsertImmagini = `INSERT INTO immagini (nome_immagine, slug_immobile) VALUES ?`;
+                    const valoriImmagini = nomiImmagini.map(nome => [nome, slug]);
+
+                    connection.query(sqlInsertImmagini, [valoriImmagini], (err) => {
+                        if (err) {
+                            return res.status(500).json({ status: "fail", message: "Errore durante l'inserimento delle immagini", error: err });
+                        }
+
                         return res.status(201).json({
                             status: "success",
                             immobile_slug: slug,
                             immobile: immobile,
+                            message: messaggio,
                         });
-                    }
-                });
+                    });
+                };
+
+                inserisciTipiAlloggio();
             }
         );
     });
 };
-
-
 
 
 const modify = (req, res) => {
