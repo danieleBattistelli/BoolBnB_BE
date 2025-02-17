@@ -44,7 +44,7 @@ const index = (req, res) => {
     }
 
     // Gestione dinamica di altri parametri di filtro
-    const allowedFilters = ["locali", "bagni", "superficie_min", "superficie_max", "tipi_alloggio", "voto_medio" ];
+    const allowedFilters = ["locali", "bagni", "superficie_min", "superficie_max", "tipi_alloggio", "voto_medio"];
 
     Object.keys(req.query).forEach((key) => {
         if (allowedFilters.includes(key)) {
@@ -70,7 +70,7 @@ const index = (req, res) => {
                     console.log(key);
                     sqlImmobili += " AND COALESCE(v.voto_medio, 0) >= ?";
                     params.push(req.query[key]);
-                    break;    
+                    break;
                 default:
                     sqlImmobili += ` AND i.${key} >= ?`;
                     params.push(req.query[key]);
@@ -78,14 +78,6 @@ const index = (req, res) => {
             }
         }
     });
-
-    // Gestione ordinamento per voto medio
-    const orderByVoto = req.query.order_by_voto;
-    if (orderByVoto === "asc") {
-        sqlImmobili += " ORDER BY voto_medio ASC";
-    } else if (orderByVoto === "desc") {
-        sqlImmobili += " ORDER BY voto_medio DESC";
-    }
 
     // Aggiungi GROUP BY per tutte le colonne che non sono aggregate
     sqlImmobili += `
@@ -103,6 +95,14 @@ const index = (req, res) => {
         i.posti_letto, 
         i.data_eliminazione
     `;
+
+    // Gestione ordinamento per voto medio
+    const orderByVoto = req.query.order_by_voto;
+    if (orderByVoto === "asc") {
+        sqlImmobili += " ORDER BY voto_medio ASC";
+    } else if (orderByVoto === "desc") {
+        sqlImmobili += " ORDER BY voto_medio DESC";
+    }
 
     // Esegui la query
     connection.query(sqlImmobili, params, (err, immobili) => {
