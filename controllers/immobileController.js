@@ -193,7 +193,6 @@ const show = (req, res, next) => {
             return res.status(500).json({ status: "fail", message: err });
         }
 
-        // Se nessun immobile è stato trovato
         if (!result.length) {
             return res.status(404).json({ status: "fail", message: "Nessun immobile trovato" });
         }
@@ -202,7 +201,6 @@ const show = (req, res, next) => {
 
         // Secondo step: ottenere i dettagli dell'immobile
         const sqlImmobile = `SELECT * FROM immobili WHERE slug = ?`;
-
         connection.query(sqlImmobile, [slug], (err, immobile) => {
             if (err) {
                 return res.status(500).json({ status: "fail", message: err });
@@ -232,47 +230,34 @@ const show = (req, res, next) => {
                 `;
 
                 connection.query(sqlImmagini, [slug], (err, immagini) => {
-                    if (err) {
-                        return res.status(500).json({ status: "fail", message: err });
-                    }
+                    if (err) immagini = [];
 
                     // Quinto step: ottenere i tipi di alloggio
                     const sqlTipiAlloggi = `
                         SELECT ta.id, ta.nome_tipo_alloggio
                         FROM tipi_alloggio ta
-                        INNER JOIN immobili_tipi_alloggio ita ON ta.id = ita.tipo_alloggio_id
-                        WHERE ita.slug_immobile = ? 
+                        LEFT JOIN immobili_tipi_alloggio ita ON ta.id = ita.tipo_alloggio_id
+                        WHERE ita.slug_immobile = ? OR ita.slug_immobile IS NULL
                     `;
 
                     connection.query(sqlTipiAlloggi, [slug], (err, tipiAlloggio) => {
-                        if (err) {
-                            return res.status(500).json({ status: "fail", message: err });
-                        }
+                        if (err || !tipiAlloggio.length) tipiAlloggio = [];
 
                         function calcolaMedia(array) {
                             if (array.length === 0) return 0;
-
-                            const numeri = array.map(item => {
-                                const numero = parseInt(item, 10);
-                                return isNaN(numero) ? 0 : numero;
-                            });
-
+                            const numeri = array.map(item => parseInt(item.voto, 10) || 0);
                             return numeri.reduce((a, b) => a + b, 0) / numeri.length;
                         }
 
+                        const votoMedio = calcolaMedia(recensioni);
 
-                        const voti = [];
-
-                        recensioni.forEach((recensione) => voti.push(recensione.voto));
-
-                        // Invio della risposta finale con tutti i dati raccolti
                         return res.status(200).json({
                             status: "success",
                             results: {
                                 immobile: {
                                     ...immobile[0],
                                     tot_recensioni: recensioni.length,
-                                    voto_medio: calcolaMedia(voti),
+                                    voto_medio: votoMedio,
                                     recensioni: recensioni || [],
                                 },
                                 immagini: immagini || [],
@@ -285,6 +270,7 @@ const show = (req, res, next) => {
         });
     });
 };
+
 
 
 const destroy = (req, res) => {
