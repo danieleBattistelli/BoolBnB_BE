@@ -215,7 +215,7 @@ const show = (req, res, next) => {
                 SELECT id, username, recensione, voto, data
                 FROM recensioni
                 WHERE id_immobile = ?
-                ORDER BY data
+                ORDER BY data DESC;
             `;
 
             connection.query(sqlRecensioni, [idImmobile], (err, recensioni) => {
