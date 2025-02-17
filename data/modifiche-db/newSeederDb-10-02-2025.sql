@@ -25,17 +25,17 @@ INSERT INTO tipi_alloggio (id, nome_tipo_alloggio) VALUES
 (10, 'Appartamento Elegante');
 
 -- Popolamento della tabella immobili_tipi_alloggio
-INSERT INTO immobili_tipi_alloggio (id, slug_immobile, tipo_alloggio_id) VALUES
-(1, 'appartamento-vista-mare', 1),
-(2, 'villa-immersa-nel-verde', 2),
-(3, 'monolocale-centrale', 3),
-(4, 'attico-lussuoso', 4),
-(5, 'casetta-di-campagna', 5),
-(6, 'loft-industriale', 6),
-(7, 'bungalow-al-mare', 7),
-(8, 'casa-colonica', 8),
-(9, 'attico-moderno', 9),
-(10, 'appartamento-elegante', 10);
+INSERT INTO immobili_tipi_alloggio (slug_immobile, tipo_alloggio_id) VALUES
+('appartamento-vista-mare', 1),
+('villa-immersa-nel-verde', 2),
+('monolocale-centrale', 3),
+('attico-lussuoso', 4),
+('casetta-di-campagna', 5),
+('loft-industriale', 6),
+('bungalow-al-mare', 7),
+('casa-colonica', 8),
+('attico-moderno', 9),
+('appartamento-elegante', 10);
 
 -- Popolamento della tabella immagini
 INSERT INTO immagini (id, nome_immagine, slug_immobile) VALUES
