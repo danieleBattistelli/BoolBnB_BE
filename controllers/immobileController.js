@@ -47,14 +47,15 @@ const index = (req, res) => {
     const allowedFilters = ["locali", "bagni", "superficie_min", "superficie_max", "tipi_alloggio", "voto_medio"];
 
     Object.keys(req.query).forEach((key) => {
+        console.log(key);
         if (allowedFilters.includes(key)) {
             switch (key) {
                 case "superficie_min":
-                    sqlImmobili += " AND i.superficie >= ?";
+                    sqlImmobili += " AND i.mq >= ?";
                     params.push(req.query[key]);
                     break;
                 case "superficie_max":
-                    sqlImmobili += " AND i.superficie <= ?";
+                    sqlImmobili += " AND i.mq <= ?";
                     params.push(req.query[key]);
                     break;
                 case "tipi_alloggio":
