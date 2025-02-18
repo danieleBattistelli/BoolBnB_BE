@@ -59,7 +59,7 @@ const index = (req, res) => {
                     params.push(req.query[key]);
                     break;
                 case "tipi_alloggio":
-                    sqlImmobili += " AND t.id = ?";
+                    sqlImmobili += " AND t.id IS NOT NULL AND t.id = ?";
                     params.push(req.query[key]);
                     break;
                 case "bagni":
