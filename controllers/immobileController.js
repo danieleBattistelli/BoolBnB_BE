@@ -44,7 +44,7 @@ const index = (req, res) => {
     }
 
     // Gestione dinamica di altri parametri di filtro
-    const allowedFilters = ["locali", "bagni", "superficie_min", "superficie_max", "tipi_alloggio", "voto_medio"];
+    const allowedFilters = ["locali", "bagni", "superficie_min", "superficie_max", "tipi_alloggio", "voto_medio", "posti_letto"];
 
     Object.keys(req.query).forEach((key) => {
         console.log(key);
