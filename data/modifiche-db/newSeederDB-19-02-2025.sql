@@ -1,5 +1,36 @@
 
+
 INSERT INTO immobili (id, slug, email_proprietario, username_proprietario, titolo_descrittivo, indirizzo_completo, descrizione, mq, bagni, locali, posti_letto) VALUES
+(1, 'appartamento-vista-mare', 'mario.rossi@example.com', 'mario_rossi', 'Appartamento Vista Mare', 'Via Lungomare, 10, Napoli, Italia', 'Splendido appartamento con vista mare.', 80, 2, 3, 5),
+(2, 'villa-immersa-nel-verde', 'luca.bianchi@example.com', 'luca_bianchi', 'Villa Immersa nel Verde', 'Via dei Pini, 20, Firenze, Italia', 'Villa con ampio giardino.', 200, 3, 6, 8),
+(3, 'monolocale-centrale', 'giulia.verdi@example.com', 'giulia_verdi', 'Monolocale Centrale', 'Via del Corso, 5, Roma, Italia', 'Monolocale nel centro della città.', 35, 1, 1, 2),
+(4, 'attico-lussuoso-unico', 'andrea.neri@example.com', 'andrea_neri', 'Attico Lussuoso', 'Via Veneto, 15, Milano, Italia', 'Attico con vista panoramica.', 120, 2, 4, 6),
+(5, 'casetta-di-campagna', 'federica.bianchi@example.com', 'federica_bianchi', 'Casetta di Campagna', 'Strada Provinciale, 30, Siena, Italia', 'Piccola casetta immersa nel verde.', 70, 1, 3, 4),
+(6, 'loft-industriale-unico', 'lorenzo.marino@example.com', 'lorenzo_marino', 'Loft Industriale', 'Via Manzoni, 50, Bologna, Italia', 'Spazioso loft in stile industriale.', 90, 1, 2, 3),
+(7, 'bungalow-al-mare', 'chiara.russo@example.com', 'chiara_russo', 'Bungalow al Mare', 'Via Marittima, 25, Genova, Italia', 'Bungalow con accesso diretto alla spiaggia.', 60, 2, 2, 4),
+(8, 'casa-colonica', 'alessandro.vitali@example.com', 'alessandro_vitali', 'Casa Colonica', 'Via delle Campagne, 40, Perugia, Italia', 'Casa colonica ristrutturata.', 150, 3, 5, 7),
+(9, 'attico-moderno', 'valentina.ferrari@example.com', 'valentina_ferrari', 'Attico Moderno', "Via dell'Arte, 8, Venezia, Italia", 'Attico moderno con terrazza.', 100, 2, 4, 5),
+(10, 'appartamento-elegante', 'francesco.gori@example.com', 'francesco_gori', 'Appartamento Elegante', 'Via del Teatro, 12, Torino, Italia', 'Appartamento elegante e centrale.', 85, 2, 3, 4),
+(31, 'appartamento-moderno', 'giuseppe.rossi@example.com', 'giuseppe_rossi', 'Appartamento Moderno', 'Via Roma, 25, Milano, Italia', 'Appartamento moderno con ampie finestre.', 85, 2, 3, 4),
+(12, 'villa-con-piscina', 'mario.rossi@example.com', 'mario_rossi', 'Villa con Piscina', 'Viale delle Palme, 15, Torino, Italia', 'Villa con piscina e ampio giardino.', 250, 4, 7, 10),
+(13, 'attico-panorama', 'carla.bianchi@example.com', 'carla_bianchi', 'Attico con Panorama', 'Piazza del Duomo, 3, Firenze, Italia', 'Attico con vista spettacolare sulla città.', 140, 3, 5, 7),
+(14, 'casa-del-campo', 'alessandro.ferrari@example.com', 'alessandro_ferrari', 'Casa del Campo', 'Strada della Collina, 40, Lucca, Italia', 'Casa nel campo con grandi spazi verdi.', 120, 2, 4, 6),
+(15, 'monolocale-luminoso', 'martina.neri@example.com', 'martina_neri', 'Monolocale Luminoso', 'Corso Vittorio Emanuele, 22, Bologna, Italia', 'Monolocale luminoso con balcone.', 30, 1, 1, 2),
+(16, 'bungalow-nel-verde', 'andrea.galli@example.com', 'andrea_galli', 'Bungalow nel Verde', 'Via dei Cipressi, 8, Pisa, Italia', 'Bungalow in mezzo alla natura.', 70, 1, 2, 4),
+(17, 'villa-sul-lago', 'mario.ferrari@example.com', 'mario_ferrari', 'Villa sul Lago', 'Lungolago, 14, Como, Italia', 'Villa con vista sul lago e giardino.', 220, 3, 6, 8),
+(18, 'loft-lussuoso', 'giovanni.pirro@example.com', 'giovanni_pirro', 'Loft Lussuoso', 'Via Dante, 18, Napoli, Italia', 'Loft elegante in stile moderno.', 100, 2, 3, 5),
+(19, 'attico-con-terrazza', 'giulia.ferrari@example.com', 'giulia_ferrari', 'Attico con Terrazza', 'Piazza Garibaldi, 6, Roma, Italia', 'Attico con grande terrazza panoramica.', 130, 2, 4, 6),
+(20, 'casetta-in-montagna', 'francesco.verdi@example.com', 'francesco_verdi', 'Casetta in Montagna', 'Via del Bosco, 9, Aosta, Italia', 'Casetta accogliente in montagna.', 60, 1, 3, 4),
+(21, 'villa-della-collina', 'luigi.gori@example.com', 'luigi_gori', 'Villa della Collina', 'Via dei Fiori, 10, Verona, Italia', 'Villa con parco privato e piscina.', 300, 4, 8, 12),
+(22, 'monolocale-centrale-roma', 'maria.bianchi@example.com', 'maria_bianchi', 'Monolocale Centrale Roma', 'Piazza Venezia, 11, Roma, Italia', 'Monolocale nel cuore di Roma.', 45, 1, 1, 2),
+(23, 'attico-della-citta', 'lucia.ferrari@example.com', 'lucia_ferrari', 'Attico della Città', 'Via delle Mura, 21, Milano, Italia', 'Attico con vista sulla città e terrazza.', 120, 2, 4, 5),
+(24, 'villa-al-mare', 'antonio.galante@example.com', 'antonio_galante', 'Villa al Mare', 'Via Marina, 17, Cagliari, Italia', 'Villa con giardino a due passi dalla spiaggia.', 280, 4, 6, 9),
+(25, 'loft-urbano', 'giorgia.martini@example.com', 'giorgia_martini', 'Loft Urbano', 'Via della Stazione, 5, Torino, Italia', 'Loft elegante in un contesto urbano moderno.', 110, 2, 3, 5),
+(26, 'casetta-di-mare', 'alberto.russo@example.com', 'alberto_russo', 'Casetta di Mare', 'Viale del Mare, 10, Genova, Italia', 'Piccola casetta fronte mare.', 75, 1, 2, 4),
+(27, 'appartamento-trilocale', 'paolo.mancini@example.com', 'paolo_mancini', 'Appartamento Trilocale', 'Via Trento, 8, Firenze, Italia', 'Trilocale arredato e confortevole.', 90, 2, 3, 5),
+(28, 'bungalow-con-giardino', 'elena.dimarco@example.com', 'elena_dimarco', 'Bungalow con Giardino', 'Strada delle Palme, 14, Perugia, Italia', 'Bungalow con giardino privato.', 80, 2, 3, 6),
+(29, 'villa-storica', 'michele.gori@example.com', 'michele_gori', 'Villa Storica', 'Corso Italia, 45, Palermo, Italia', 'Villa storica ristrutturata con ampio parco.', 350, 5, 8, 12),
+(30, 'attico-superior', 'valentina.russo@example.com', 'valentina_russo', 'Attico Superior', 'Piazza Cavour, 30, Napoli, Italia', 'Attico di lusso con vista sul Golfo.', 180, 3, 5, 7),
 (41, 'villa-sul-mare', 'marco.rossi@example.com', 'marco_rossi', 'Villa sul Mare', 'Via del Mare, 10, Amalfi, Italia', 'Villa con accesso diretto alla spiaggia.', 300, 4, 8, 10),
 (42, 'chalet-alpino', 'laura.bianchi@example.com', 'laura_bianchi', 'Chalet Alpino', 'Via delle Alpi, 5, Courmayeur, Italia', 'Chalet di lusso con vista sulle montagne.', 150, 3, 5, 6),
 (43, 'attico-centrale', 'roberto.verdi@example.com', 'roberto_verdi', 'Attico Centrale', 'Piazza della Repubblica, 1, Roma, Italia', 'Attico con terrazza panoramica.', 200, 3, 6, 8),
@@ -21,6 +52,7 @@ INSERT INTO immobili (id, slug, email_proprietario, username_proprietario, titol
 (59, 'villa-sul-lago-como', 'stefano.bianchi@example.com', 'stefano_bianchi', 'Villa sul Lago di Como', 'Via Regina, 30, Bellagio, Italia', 'Villa di lusso con piscina e vista lago.', 420, 5, 10, 12),
 (60, 'casale-rustico', 'valentina.martini@example.com', 'valentina_martini', 'Casale Rustico', 'Strada del Sagrantino, 35, Montefalco, Italia', 'Casale rustico con vigneto e piscina.', 270, 3, 6, 8);
 
+
 -- Inserimento nuovi tipi di alloggio
 INSERT INTO tipi_alloggio (id, nome_tipo_alloggio) VALUES
 (1, 'Appartamento'),
@@ -33,9 +65,23 @@ INSERT INTO tipi_alloggio (id, nome_tipo_alloggio) VALUES
 (8, 'Loft'),
 (9, 'Villa Storica'),
 (10, 'Casetta');
+(11, 'Bungalow'),
+(12, 'Casa Colonica'),
+(13, 'Attico Moderno'),
+(14, 'Appartamento Elegante');
 
 -- Popolamento della tabella immobili_tipi_alloggio
 INSERT INTO immobili_tipi_alloggio (slug_immobile, tipo_alloggio_id) VALUES
+('appartamento-vista-mare', 1),
+('villa-immersa-nel-verde', 2),
+('monolocale-centrale', 3),
+('attico-lussuoso', 4),
+('casetta-di-campagna', 5),
+('loft-industriale', 6),
+('bungalow-al-mare', 7),
+('casa-colonica', 8),
+('attico-moderno', 9),
+('appartamento-elegante', 10),
 ('appartamento-moderno', 1),
 ('villa-con-piscina', 2),
 ('attico-panorama', 3),
@@ -60,6 +106,27 @@ INSERT INTO immobili_tipi_alloggio (slug_immobile, tipo_alloggio_id) VALUES
 
 -- Inserimento immagini per i nuovi immobili
 INSERT INTO immagini (id, nome_immagine, slug_immobile) VALUES
+
+(1, 'appartamento1.jpg', 'appartamento-vista-mare'),
+(2, 'appartamento2.jpg', 'appartamento-vista-mare'),
+(3, 'villa1.jpg', 'villa-immersa-nel-verde'),
+(4, 'villa2.jpg', 'villa-immersa-nel-verde'),
+(5, 'monolocale1.jpg', 'monolocale-centrale'),
+(6, 'monolocale2.jpg', 'monolocale-centrale'),
+(7, 'attico1.jpg', 'attico-lussuoso'),
+(8, 'attico2.jpg', 'attico-lussuoso'),
+(9, 'casetta1.jpg', 'casetta-di-campagna'),
+(10, 'casetta2.jpg', 'casetta-di-campagna'),
+(11, 'loft1.jpg', 'loft-industriale'),
+(12, 'loft2.jpg', 'loft-industriale'),
+(13, 'bungalow1.jpg', 'bungalow-al-mare'),
+(14, 'bungalow2.jpg', 'bungalow-al-mare'),
+(15, 'colonica1.jpg', 'casa-colonica'),
+(16, 'colonica2.jpg', 'casa-colonica'),
+(17, 'moderno1.jpg', 'attico-moderno'),
+(18, 'moderno2.jpg', 'attico-moderno'),
+(19, 'elegante1.jpg', 'appartamento-elegante'),
+(20, 'elegante2.jpg', 'appartamento-elegante'),
 (21, 'moderno1.jpg', 'appartamento-moderno'),
 (22, 'moderno2.jpg', 'appartamento-moderno'),
 (23, 'piscina1.jpg', 'villa-con-piscina'),
@@ -86,6 +153,17 @@ INSERT INTO immagini (id, nome_immagine, slug_immobile) VALUES
 
 -- Inserimento recensioni per i nuovi immobili
 INSERT INTO recensioni (id, id_immobile, voto, recensione, email, username) VALUES
+
+(1, 1, 5, 'Bellissimo appartamento, vista incredibile!', 'giulia.verdi@example.com', 'giulia_verdi'),
+(2, 2, 4, 'Villa molto spaziosa, ottimo giardino.', 'andrea.neri@example.com', 'andrea_neri'),
+(3, 3, 3, 'Monolocale centrale, ma molto piccolo.', 'federica.bianchi@example.com', 'federica_bianchi'),
+(4, 4, 5, 'Attico lussuoso, vale ogni centesimo.', 'luigi.rossi@example.com', 'luigi_rossi'),
+(5, 5, 4, 'Casetta di campagna accogliente.', 'maria.verdi@example.com', 'maria_verdi'),
+(6, 6, 4, 'Loft spazioso e ben arredato.', 'elena.mancini@example.com', 'elena_mancini'),
+(7, 7, 5, 'Bungalow perfetto per le vacanze.', 'giorgio.falco@example.com', 'giorgio_falco'),
+(8, 8, 4, 'Casa colonica rustica e affascinante.', 'simona.ferri@example.com', 'simona_ferri'),
+(9, 9, 5, 'Attico moderno e ben posizionato.', 'paolo.marchi@example.com', 'paolo_marchi'),
+(10, 10, 4, 'Appartamento elegante e confortevole.', 'martina.bellini@example.com', 'martina_bellini'),
 (31, 31, 5, 'Appartamento moderno e molto luminoso.', 'giuseppe.rossi@example.com', 'giuseppe_rossi'),
 (12, 12, 5, 'Villa con piscina meravigliosa!', 'mario.rossi@example.com', 'mario_rossi'),
 (13, 13, 4, 'Attico con vista fantastica, ma un po costoso.', 'carla.bianchi@example.com', 'carla_bianchi'),
