@@ -298,4 +298,4 @@ INSERT INTO recensioni (id, id_immobile, voto, recensione, email, username) VALU
 (137, 19, 5, 'Una delle migliori sistemazioni che abbia mai avuto. Vista panoramica incredibile.', 'paolo.marchi@example.com', 'paolo.marchi'),
 (138, 30, 5, 'Appartamento elegante e ben posizionato. Perfetto per una vacanza a Torino.', 'martina.bellini@example.com', 'martina_bellini'),
 (139, 35, 4, 'Appartamento carino e accogliente. Molto centrale, ma un po rumoroso di notte.', 'giulia.verdi@example.com', 'giulia_verdi'),
-(140, 33, 5, 'Bellissimo appartamento, ottima scelta per una visita a Torino. Confortevole e ben arredato.', 'elena.mancini@example.com', 'elena_mancini'),
+(140, 33, 5, 'Bellissimo appartamento, ottima scelta per una visita a Torino. Confortevole e ben arredato.', 'elena.mancini@example.com', 'elena_mancini')
