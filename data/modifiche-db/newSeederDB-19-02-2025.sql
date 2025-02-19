@@ -146,7 +146,29 @@ INSERT INTO immagini (id, nome_immagine, slug_immobile) VALUES
 (37, 'terrazza1.jpg', 'attico-con-terrazza'),
 (38, 'terrazza2.jpg', 'attico-con-terrazza'),
 (39, 'montagna1.jpg', 'casetta-in-montagna'),
-(40, 'montagna2.jpg', 'casetta-in-montagna');
+(40, 'montagna2.jpg', 'casetta-in-montagna'),
+(41, 'vista_city.jpg', 'villa-della-collina'),
+(42, 'villa.jpg', 'villa-della-collina'),
+(43, 'stanza_aestetic.jpg', 'monolocale-centrale-roma'),
+(44, 'spazio_aperto.jpg', 'monolocale-centrale-roma'),
+(45, 'salone_luminoso.jpg', 'attico-della-citta'),
+(46, 'salone.jpg', 'attico-della-citta'),
+(47, 'relax_room.jpg', 'villa-al-mare'),
+(48, 'open_space.jpg', 'villa-al-mare'),
+(49, 'open_divano.jpg', 'loft-urbano'),
+(50, 'open_bianco.jpg', 'loft-urbano'),
+(51, 'non-ho-piu-nomi.jpg', 'casetta-di-mare'),
+(52, 'mono-luminoso.jpg', 'casetta-di-mare'),
+(53, 'monolocale_moderno.jpg', 'appartamento-trilocale'),
+(54, 'monolocale_centro.jpg', 'appartamento-trilocale'),
+(55, 'monolocale.jpg', 'bungalow-con-giardino'),
+(56, 'mono_laterale.jpg', 'bungalow-con-giardino'),
+(57, 'locale_con_parquet.jpg', 'villa-storica'),
+(58, 'living_room.jpg', 'villa-storica'),
+(59, 'esterno_palazzo.jpg', 'attico-superior'),
+(60, 'attico.jpg', 'attico-superior'),
+(61, 'living_room.jpg', 'attico-lussuoso'),
+(62, 'attico2.jpg', 'attico-lussuoso');
 
 
 
