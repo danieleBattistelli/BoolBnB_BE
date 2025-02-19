@@ -17,7 +17,7 @@ INSERT INTO immobili (id, slug, email_proprietario, username_proprietario, titol
 (14, 'casa-del-campo', 'alessandro.ferrari@example.com', 'alessandro_ferrari', 'Casa del Campo', 'Strada della Collina, 40, Lucca, Italia', 'Casa nel campo con grandi spazi verdi.', 120, 2, 4, 6),
 (15, 'monolocale-luminoso', 'martina.neri@example.com', 'martina_neri', 'Monolocale Luminoso', 'Corso Vittorio Emanuele, 22, Bologna, Italia', 'Monolocale luminoso con balcone.', 30, 1, 1, 2),
 (16, 'bungalow-nel-verde', 'andrea.galli@example.com', 'andrea_galli', 'Bungalow nel Verde', 'Via dei Cipressi, 8, Pisa, Italia', 'Bungalow in mezzo alla natura.', 70, 1, 2, 4),
-(17, 'villa-sul-lago', 'mario.ferrari@example.com', 'mario_ferrari', 'Villa sul Lago', 'Lungolago, 14, Como, Italia', 'Villa con vista sul lago e giardino.', 220, 3, 6, 8),
+(17, 'villa-vicino-lago', 'mario.ferrari@example.com', 'mario_ferrari', 'Villa sul Lago', 'Lungolago, 14, Como, Italia', 'Villa con vista sul lago e giardino.', 220, 3, 6, 8),
 (18, 'loft-lussuoso', 'giovanni.pirro@example.com', 'giovanni_pirro', 'Loft Lussuoso', 'Via Dante, 18, Napoli, Italia', 'Loft elegante in stile moderno.', 100, 2, 3, 5),
 (19, 'attico-con-terrazza', 'giulia.ferrari@example.com', 'giulia_ferrari', 'Attico con Terrazza', 'Piazza Garibaldi, 6, Roma, Italia', 'Attico con grande terrazza panoramica.', 130, 2, 4, 6),
 (20, 'casetta-in-montagna', 'francesco.verdi@example.com', 'francesco_verdi', 'Casetta in Montagna', 'Via del Bosco, 9, Aosta, Italia', 'Casetta accogliente in montagna.', 60, 1, 3, 4),
@@ -64,7 +64,7 @@ INSERT INTO tipi_alloggio (id, nome_tipo_alloggio) VALUES
 (7, 'Villa sul Lago'),
 (8, 'Loft'),
 (9, 'Villa Storica'),
-(10, 'Casetta');
+(10, 'Casetta'),
 (11, 'Bungalow'),
 (12, 'Casa Colonica'),
 (13, 'Attico Moderno'),
@@ -184,4 +184,3 @@ INSERT INTO recensioni (id, id_immobile, voto, recensione, email, username) VALU
 (28, 28, 5, 'Bungalow molto accogliente con giardino.', 'elena.dimarco@example.com', 'elena_dimarco'),
 (29, 29, 5, 'Villa storica meravigliosa e ben mantenuta.', 'michele.gori@example.com', 'michele_gori'),
 (30, 30, 5, 'Attico super lussuoso con vista mozzafiato.', 'valentina.russo@example.com', 'valentina_russo');
-
