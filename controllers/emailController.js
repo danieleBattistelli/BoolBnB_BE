@@ -21,7 +21,7 @@ const sendEmail = async (req, res) => {
         await transporter.sendMail({
             from: `${name} ${surname} <${email}>`,
             to: DESTINATARIO,
-            subject,
+            subject: `Richiesta cliente: ${subject}`,
             text: `${text} \n\nMessaggio inviato da ${name} ${surname}, numero di telefono ${phone}`
         });
 
@@ -32,4 +32,4 @@ const sendEmail = async (req, res) => {
         }
     };
 
-export default sendEmail
+export default sendEmail;
