@@ -170,7 +170,7 @@ const index = (req, res) => {
                 const immobiliFinali = immobili.map(immobile => ({
                     ...immobile,
                     immagini: immaginiMap[immobile.slug] || [],
-                    tipi_alloggio: tipiAlloggioMap[immobile.slug] || []
+                    tipi_alloggio: tipiAlloggioMap[immobile.slug] ? [...tipiAlloggioMap[immobile.slug]] : []
                 }));
 
                 return res.status(200).json({
@@ -377,7 +377,7 @@ const store = (req, res) => {
             if (isNaN(numValue)) {
                 return res.status(400).json({
                     status: "fail",
-                    message: `Il campo 'numero ${key}' deve essere un numero valido.`
+                    message: `Il campo '${key}' deve essere un numero valido.`
                 });
             }
 
@@ -388,7 +388,7 @@ const store = (req, res) => {
             if (numValue < 0 || (key !== "mq" && numValue > 10)) {
                 return res.status(400).json({
                     status: "fail",
-                    message: `Il campo 'numero ${key}' deve essere un numero positivo e non può essere maggiore di 10.`
+                    message: `Il campo '${key}' deve essere un numero positivo e non può essere maggiore di 10.`
                 });
             }
         }
